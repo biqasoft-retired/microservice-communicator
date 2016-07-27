@@ -1,5 +1,12 @@
 # Spring cloud microservice communicator
 
+Auto generate HTTP REST classes for interfaces
+
+## Requirements
+ - Spring 4
+ - Spring Cloud
+ - Consul
+
 ## Usage
  - Add `@EnableMicroserviceCommunicator` to anu configuration class. Optionally set `basePackages` or `basePackages` from `@ComponentScan` will be used
  - Create interface, for example
@@ -30,6 +37,19 @@ public interface MicroserviceUsersRepositoryTest {
 ```
 
  - Inject `MicroserviceUsersRepositoryTest` to any bean
-  
+```java
+@Service
+public class UsersRepository {
+
+    @Autowired
+    private MicroserviceUsersRepository microserviceUsersRepository;
+
+    public void testReturnGenericList(){
+        List<UserAccount> allUsers = microserviceUsersRepository.returnGenericList();
+    }
+
+}
+```
+ 
 ### License
 Copyright © 2016 Nikita Bakaev. Licensed under the Apache License.
