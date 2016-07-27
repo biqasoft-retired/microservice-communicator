@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 
 /**
  * Add to annotation to interface method
- *
+ * <p>
  * Payload for PUT and POST must be first argument
  *
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -25,23 +25,26 @@ import java.lang.annotation.*;
 public @interface MicroserviceMapping {
 
     String path() default "/";
+
     HttpMethod method() default HttpMethod.GET;
 
     /**
      * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
-     * @return
+     *
+     * @return true if try to reconnect to service on error
      */
     boolean tryToReconnect() default true;
 
     /**
      * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
-     * @return
+     *
+     * @return number of tries to reconnect
      */
     int tryToReconnectTimes() default 11;
 
     /**
      * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
-     * @return
+     * @return millisecond between trying
      */
     int sleepTimeBetweenTrying() default 1000;
 

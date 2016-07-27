@@ -169,6 +169,7 @@ public class MicroserviceInterfaceImpFactory {
      * Create microservice implementation
      *
      * @param interfaceToExtend interface, annotated {@link MicroserviceRequest}
+     * @return object implemented interface
      */
     public static Object create(Class<?> interfaceToExtend) {
         if (interfaceToExtend.isInterface()) {

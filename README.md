@@ -51,6 +51,16 @@ public class UsersRepository {
 
 }
 ```
+
+##
+
+```java
+<dependency>
+  <groupId>com.biqasoft</groupId>
+  <artifactId>microservice-communicator</artifactId>
+  <version>1.1.1-RELEASE</version>
+</dependency>
+```
  
 ### License
 Copyright © 2016 Nikita Bakaev. Licensed under the Apache License.

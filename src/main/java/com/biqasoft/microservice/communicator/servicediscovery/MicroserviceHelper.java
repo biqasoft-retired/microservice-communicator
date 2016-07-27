@@ -38,7 +38,7 @@ public class MicroserviceHelper {
      * @param pathToApiResource - URl path such as /users/all
      * @param sleepMillias      - sleep time if we can not get hostname of micoservice
      * @param tryToReconnect    if we can not get hostname of micoservice - fail immediately or sleep and try to get
-     * @return
+     * @return URL to which make request
      */
     public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource, Integer sleepMillias, Boolean tryToReconnect) {
 

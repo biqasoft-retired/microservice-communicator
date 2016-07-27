@@ -27,6 +27,7 @@ public class MicroserviceBPP implements BeanPostProcessor {
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceBPP.class);
 
     /**
+     * @param o object to check
      * @return null if bean is not created from {@link MicroserviceRequest} or {@link Type} if created from interface
      */
     public static Type isMicroserviceAnnotation(Object o) {
