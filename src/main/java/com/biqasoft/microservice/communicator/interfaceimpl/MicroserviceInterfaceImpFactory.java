@@ -54,7 +54,7 @@ public class MicroserviceInterfaceImpFactory {
     };
 
     // static field for ResponseEntity<>
-    private static Field body = null;
+    static Field body = null;
     static {
         try {
             body = HttpEntity.class.getDeclaredField("body");
@@ -266,6 +266,10 @@ public class MicroserviceInterfaceImpFactory {
     }
 
     public List<MicroserviceRequestInterceptor> getMicroserviceRequestInterceptors() {
+        if (microserviceRequestInterceptors == null){
+            microserviceRequestInterceptors = new ArrayList<>();
+        }
+
         return microserviceRequestInterceptors;
     }
 
