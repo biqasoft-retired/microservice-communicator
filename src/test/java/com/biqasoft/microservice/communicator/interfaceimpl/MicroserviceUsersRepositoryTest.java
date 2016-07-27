@@ -42,21 +42,21 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     public void initSpringContextPure() throws Exception {
     }
 
-    @Test(enabled = true, invocationCount = 2)
+    @Test(enabled = true, invocationCount = 1)
     public void testReturnGenericList() throws Exception {
         List<UserAccount> allUsersInDomain = microserviceUsersRepository.returnGenericList();
         Assert.assertTrue(allUsersInDomain.size() > 2);
         Assert.assertNotNull(allUsersInDomain.get(1).getId());
     }
 
-    @Test(enabled = true, invocationCount = 2)
+    @Test(enabled = true, invocationCount = 1)
     public void testПостроитьПолучитьМестоDomainГдеUsersГдеMock() throws Exception {
         List<UserAccount> allUsersInDomain = microserviceUsersRepository.построитьПолучитьМестоDomainГдеUsersГдеMock();
         Assert.assertTrue(allUsersInDomain.size() > 2);
         Assert.assertNotNull(allUsersInDomain.get(1).getId());
     }
 
-    @Test(enabled = true, invocationCount = 2)
+    @Test(enabled = true, invocationCount = 1)
     public void testReturnGenericResponseEntity() throws Exception {
         ResponseEntity<UserAccount> allUsersInDomainMockOneResponseEntity = microserviceUsersRepository.returnGenericResponseEntity();
         Assert.assertNotNull(allUsersInDomainMockOneResponseEntity);
@@ -64,7 +64,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertNotNull(allUsersInDomainMockOneResponseEntity.getBody().getId());
     }
 
-    @Test(enabled = true, invocationCount = 2)
+    @Test(enabled = true, invocationCount = 1)
     public void testAfterRequestInterceptor() throws Exception {
         UserAccount userAccount = new UserAccount();
         userAccount.setId("Secret mocked id");
