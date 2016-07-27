@@ -13,9 +13,11 @@
         <!-- Make platform independent -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <java.version>1.8</java.version>
 
         <!-- same as com.fasterxml.jackson.dataformat -->
         <com.fasterxml.jackson.version>2.7.4</com.fasterxml.jackson.version>
+        <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
 
         <!-- Spring -->
         <org.springframework.version>4.3.1.RELEASE</org.springframework.version>
@@ -26,26 +28,20 @@
         <httpcore.version>4.4.4</httpcore.version>
         <consul-api.version>1.1.10</consul-api.version>
 
-        <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
-
-        <org.springframework.cloud.spring-cloud-starter-consul-all>1.0.2.RELEASE</org.springframework.cloud.spring-cloud-starter-consul-all>
-
         <!-- logging -->
         <org.slf4j.version>1.7.21</org.slf4j.version>
         <ch.qos.logback.logback-classic.version>1.1.7</ch.qos.logback.logback-classic.version>
 
-        <aspectj-maven-plugin.version>1.8</aspectj-maven-plugin.version>
-        <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
-        <org.aspectj.aspectjrt.version>1.8.9</org.aspectj.aspectjrt.version>
-
         <!-- Maven plugins -->
         <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
+        <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
+        <org.aspectj.aspectjrt.version>1.8.9</org.aspectj.aspectjrt.version>
 
         <!--testing -->
         <testng.version>6.9.10</testng.version>
 
-        <java.version>1.8</java.version>
+        <spring-boot-starter.version>1.3.6.RELEASE</spring-boot-starter.version>
     </properties>
 
     <dependencyManagement>
@@ -106,22 +102,16 @@
         </dependency>
 
         <dependency>
-            <groupId>org.aspectj</groupId>
-            <artifactId>aspectjrt</artifactId>
-            <version>${org.aspectj.aspectjrt.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>1.3.6.RELEASE</version>
+            <version>${spring-boot-starter.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-dependencies</artifactId>
-            <version>1.3.6.RELEASE</version>
+            <version>${spring-boot-starter.version}</version>
             <scope>test</scope>
             <type>pom</type>
         </dependency>
@@ -202,7 +192,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
             <version>${org.slf4j.version}</version>
-            <!-- <scope>runtime</scope> --> <!-- some ru dependencies need to compile against jcl -->
         </dependency>
 
         <!-- needed to bridge to slf4j for projects that use the log4j APIs directly -->
@@ -220,6 +209,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+            <version>${org.aspectj.aspectjrt.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
             <version>${org.springframework.version}</version>
@@ -231,7 +226,6 @@
             </exclusions>
         </dependency>
     </dependencies>
-
 
     <build>
         <plugins>
@@ -280,64 +274,6 @@
                         false
                     </failOnError>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>aspectj-maven-plugin</artifactId>
-                <version>${aspectj-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>aspectj-execute</id>
-                        <!-- IMPORTANT -->
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <complianceLevel>1.8</complianceLevel>
-                    <verbose>true</verbose>
-                    <showWeaveInfo>true</showWeaveInfo>
-                </configuration>
-
-                <dependencies>
-                    <!-- AspectJ dependencies -->
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjtools</artifactId>
-                        <version>${org.aspectj.aspectjrt.version}</version>
-                        <scope>compile</scope>
-                    </dependency>
-
-                    <dependency>
-                        <groupId>org.aspectj</groupId>
-                        <artifactId>aspectjweaver</artifactId>
-                        <version>${org.aspectj.aspectjrt.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-
-            <plugin>
-                <groupId>pl.project13.maven</groupId>
-                <artifactId>git-commit-id-plugin</artifactId>
-                <configuration>
-                    <dotGitDirectory>../.git</dotGitDirectory>
-                    <generateGitPropertiesFile>true</generateGitPropertiesFile>
-                    <verbose>false</verbose>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>revision</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
