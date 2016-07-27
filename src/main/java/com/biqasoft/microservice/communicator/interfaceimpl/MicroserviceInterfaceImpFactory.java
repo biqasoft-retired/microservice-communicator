@@ -27,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,6 +56,7 @@ public class MicroserviceInterfaceImpFactory {
 
     // static field for ResponseEntity<>
     static Field body = null;
+
     static {
         try {
             body = HttpEntity.class.getDeclaredField("body");
@@ -108,7 +110,7 @@ public class MicroserviceInterfaceImpFactory {
                 request = new HttpEntity<>(payload, httpHeaders);
             }
 
-            if (microserviceRequestInterceptors != null){
+            if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
                     x.beforeRequest(storesUri, httpMethod, request, returnType, returnGenericType);
                 });
@@ -117,7 +119,7 @@ public class MicroserviceInterfaceImpFactory {
             // get all responses as byte[] and if we request object - deserialize then
             ResponseEntity<byte[]> responseEntity = restTemplate.exchange(storesUri, httpMethod, request, byte[].class);
 
-            if (microserviceRequestInterceptors != null){
+            if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
                     x.afterRequest(storesUri, httpMethod, request, responseEntity, returnType, returnGenericType);
                 });
@@ -204,14 +206,23 @@ public class MicroserviceInterfaceImpFactory {
                     int paramsForMappingUrl = 0;
 
                     // replace {} in annotated URL
-                    for (Object o1 : objects) {
-                        MicroservicePathVariable param = o1.getClass().getDeclaredAnnotation(MicroservicePathVariable.class);
-                        if (param == null || !(o1 instanceof String)) {
+                    for (Object o1 : method.getParameters()) {
+                        if  (!(((Parameter) o1).getType().equals(String.class))  ) {
+                            continue;
+                        }
+
+                        Parameter parameter = (Parameter) o1;
+                        Field field = parameter.getClass().getDeclaredField("index");
+                        field.setAccessible(true);
+                        Integer field1 = (Integer) ReflectionUtils.getField(field, parameter);
+
+                        MicroservicePathVariable param = parameter.getDeclaredAnnotation((MicroservicePathVariable.class));
+                        if (param == null || StringUtils.isEmpty(param.param())){
                             continue;
                         }
 
                         if (!StringUtils.isEmpty(param.param())) {
-                            annotatedPath = annotatedPath.replace("{" + param.param() + "}", (String) o1);
+                            annotatedPath = annotatedPath.replace("{" + param.param() + "}", (String) Arrays.asList(objects).get(field1));
                             paramsForMappingUrl++;
                         }
                     }
@@ -266,7 +277,7 @@ public class MicroserviceInterfaceImpFactory {
     }
 
     public List<MicroserviceRequestInterceptor> getMicroserviceRequestInterceptors() {
-        if (microserviceRequestInterceptors == null){
+        if (microserviceRequestInterceptors == null) {
             microserviceRequestInterceptors = new ArrayList<>();
         }
 

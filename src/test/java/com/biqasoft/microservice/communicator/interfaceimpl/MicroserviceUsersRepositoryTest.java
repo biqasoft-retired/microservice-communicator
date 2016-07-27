@@ -50,6 +50,13 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test(enabled = true, invocationCount = 1)
+    public void testReturnSingleObjectWithPathParam() throws Exception {
+        UserAccount account = microserviceUsersRepository.returnSingleObjectWithPathParam("users", "mock");
+        Assert.assertNotNull(account);
+        Assert.assertNotNull(account.getId());
+    }
+
+    @Test(enabled = true, invocationCount = 1)
     public void testПостроитьПолучитьМестоDomainГдеUsersГдеMock() throws Exception {
         List<UserAccount> allUsersInDomain = microserviceUsersRepository.построитьПолучитьМестоDomainГдеUsersГдеMock();
         Assert.assertTrue(allUsersInDomain.size() > 2);

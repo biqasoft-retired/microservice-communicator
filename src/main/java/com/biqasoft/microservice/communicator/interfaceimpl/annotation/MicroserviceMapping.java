@@ -26,7 +26,6 @@ public @interface MicroserviceMapping {
 
     String path() default "/";
     HttpMethod method() default HttpMethod.GET;
-    String[] headers() default {};
 
     /**
      * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
@@ -47,7 +46,6 @@ public @interface MicroserviceMapping {
     int sleepTimeBetweenTrying() default 1000;
 
 //    MediaType contentType() default MediaType.APPLICATION_JSON;
-
 //    String[] produces() default {};
 //    String[] consumes() default {};
 
