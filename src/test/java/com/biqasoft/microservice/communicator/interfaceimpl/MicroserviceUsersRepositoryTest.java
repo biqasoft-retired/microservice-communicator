@@ -38,10 +38,6 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     @Autowired
     private MicroserviceInterfaceImpFactory microserviceInterfaceImpFactory;
 
-    @Test
-    public void initSpringContextPure() throws Exception {
-    }
-
     @Test(enabled = true, invocationCount = 1)
     public void testReturnGenericList() throws Exception {
         List<UserAccount> allUsersInDomain = microserviceUsersRepository.returnGenericList();
