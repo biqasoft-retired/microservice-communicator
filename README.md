@@ -1,5 +1,12 @@
 # Microservice communicator
 
+[![Maven Central Widget]][Maven Central]  [![Download Bintray Widget]][Download Bintray] 
+
+[Maven Central]: https://maven.com
+[Maven Central Widget]: https://img.shields.io/maven-central/v/com.biqasoft/microservice-communicator.svg
+[Download Bintray]: https://bintray.com/biqasoft/maven/microservice-communicator/_latestVersion
+[Download Bintray Widget]: https://api.bintray.com/packages/biqasoft/maven/microservice-communicator/images/download.svg
+
 Auto generate HTTP REST classes for interfaces. Currently only for spring cloud
 
 ## Requirements
@@ -52,7 +59,7 @@ public class UsersRepository {
 }
 ```
 
-##
+## Maven
 
 ```java
 <dependency>
