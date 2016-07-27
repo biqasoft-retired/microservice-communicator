@@ -6,9 +6,7 @@ package com.biqasoft.microservice.communicator.interfaceimpl.annotation;
 
 import org.springframework.stereotype.Component;
 
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 /**
  * Add to annotation to interface
@@ -20,6 +18,7 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 @Component
 @Inherited
+@Target({ElementType.PARAMETER})
 public @interface MicroservicePathVariable {
 
     String param() default "";
