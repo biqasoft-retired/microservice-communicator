@@ -1,6 +1,6 @@
-# Spring cloud microservice communicator
+# Microservice communicator
 
-Auto generate HTTP REST classes for interfaces
+Auto generate HTTP REST classes for interfaces. Currently only for spring cloud
 
 ## Requirements
  - Spring 4
@@ -8,7 +8,7 @@ Auto generate HTTP REST classes for interfaces
  - Consul
 
 ## Usage
- - Add `@EnableMicroserviceCommunicator` to anu configuration class. Optionally set `basePackages` or `basePackages` from `@ComponentScan` will be used
+ - Add `@EnableMicroserviceCommunicator` to any @Configuration class. Optionally set `basePackages` or `basePackages` from `@ComponentScan` will be used
  - Create interface, for example
  
 ```java
