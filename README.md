@@ -45,7 +45,7 @@ public class UsersRepository {
     private MicroserviceUsersRepository microserviceUsersRepository;
 
     public void testReturnGenericList(){
-        List<UserAccount> allUsers = microserviceUsersRepository.getAllUsers();
+        List<UserAccount> allUsers = microserviceUsersRepository.returnGenericList();
     }
 
 }
