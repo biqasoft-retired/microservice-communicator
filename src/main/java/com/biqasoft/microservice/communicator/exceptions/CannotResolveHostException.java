@@ -2,7 +2,7 @@
  * Copyright (c) 2016. com.biqasoft
  */
 
-package com.biqasoft.microservice.communicator.servicediscovery;
+package com.biqasoft.microservice.communicator.exceptions;
 
 /**
  * Created by Nikita Bakaev, ya@nbakaev.ru on 5/12/2016.

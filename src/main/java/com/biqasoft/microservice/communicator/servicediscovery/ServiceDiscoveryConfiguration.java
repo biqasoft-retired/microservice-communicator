@@ -29,7 +29,7 @@ public class ServiceDiscoveryConfiguration {
 
     @PostConstruct
     public void init(){
-        ConfigurationManager.getConfigInstance().setProperty("exporter.ribbon.ServerListRefreshInterval", 1000);
+        ConfigurationManager.getConfigInstance().setProperty("ribbon.ServerListRefreshInterval", 1000);
     }
 
 }
