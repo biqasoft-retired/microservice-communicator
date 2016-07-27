@@ -29,19 +29,19 @@ public @interface MicroserviceMapping {
     String[] headers() default {};
 
     /**
-     * see {@link com.biqasoft.microservice.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
+     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
      * @return
      */
     boolean tryToReconnect() default true;
 
     /**
-     * see {@link com.biqasoft.microservice.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
+     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
      * @return
      */
     int tryToReconnectTimes() default 11;
 
     /**
-     * see {@link com.biqasoft.microservice.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
+     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int)}
      * @return
      */
     int sleepTimeBetweenTrying() default 1000;

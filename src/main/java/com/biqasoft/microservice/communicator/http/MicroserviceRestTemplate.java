@@ -108,14 +108,6 @@ public class MicroserviceRestTemplate extends RestTemplate {
 
     /**
      * Try to execute more HTTP request if {@link #doExecute(URI, HttpMethod, RequestCallback, ResponseExtractor)} request is failed with exception
-     *
-     * @param url
-     * @param method
-     * @param requestCallback
-     * @param responseExtractor
-     * @param <T>
-     * @return
-     * @throws RestClientException
      */
     private <T> T doExecuteOnError(URI url, HttpMethod method, RequestCallback requestCallback, ResponseExtractor<T> responseExtractor) throws RestClientException {
         boolean exitLoop = false;

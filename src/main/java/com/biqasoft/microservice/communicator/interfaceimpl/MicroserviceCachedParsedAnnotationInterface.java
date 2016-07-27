@@ -32,10 +32,6 @@ public class MicroserviceCachedParsedAnnotationInterface {
     /**
      * Get cached microservice information about REST endpoint
      * Used to avoid use a lot of reflection every method call
-     *
-     * @param method
-     * @param o
-     * @return
      */
     static MicroserviceInterfaceImpFactory.CachedMicroserviceCall processMicroserviceSignature(Method method, Object o) {
         MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall = cachedMicroserviceCallMap.get(method.hashCode());
@@ -50,10 +46,6 @@ public class MicroserviceCachedParsedAnnotationInterface {
     /**
      * We have not cached info about this method (REST endpoint)
      * So, calculate
-     *
-     * @param method
-     * @param o
-     * @return
      */
     private static MicroserviceInterfaceImpFactory.CachedMicroserviceCall computeMicroserviceSignature(Method method, Object o) {
         logger.info("Create microservice impl of method {}", method.getName());

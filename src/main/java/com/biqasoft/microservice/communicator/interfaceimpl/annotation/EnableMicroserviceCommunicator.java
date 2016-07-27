@@ -8,7 +8,7 @@ package com.biqasoft.microservice.communicator.interfaceimpl.annotation;
 import java.lang.annotation.*;
 
 /**
- * Enable {@link com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceInterfaceImplementorBeanDefinitioneanDefinition}
+ * Enable {@link com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceInterfaceImpFactory}
  *
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/17/2016

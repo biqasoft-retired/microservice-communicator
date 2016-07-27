@@ -24,8 +24,6 @@ public class ClassPathScanningCandidateComponentMicroserviceInterfaceProvider ex
 
     /**
      * Search for interface
-     * @param beanDefinition
-     * @return
      */
     @Override
     protected boolean isCandidateComponent(AnnotatedBeanDefinition beanDefinition) {

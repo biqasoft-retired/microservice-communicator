@@ -5,6 +5,7 @@
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
 import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
+import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.http.HttpClientsHelpers;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePathVariable;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -167,7 +167,6 @@ public class MicroserviceInterfaceImpFactory {
      * Create microservice implementation
      *
      * @param interfaceToExtend interface, annotated {@link MicroserviceRequest}
-     * @return
      */
     public static Object create(Class<?> interfaceToExtend) {
         if (interfaceToExtend.isInterface()) {
