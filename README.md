@@ -22,6 +22,10 @@ public interface MicroserviceUsersRepositoryTest {
     @MicroserviceMapping
     List<UserAccount> построитьПолучитьМестоDomainГдеUsersГдеMock();
 
+    // in tests url will be /domain/users/mock/one
+    @MicroserviceMapping(path = "/domain/{s1}/{s2}/one", method = HttpMethod.GET)
+    UserAccount returnSingleObjectWithPathParam(@MicroservicePathVariable(param = "s1") String s, @MicroservicePathVariable(param = "s2") String s2);
+
 }
 ```
 
