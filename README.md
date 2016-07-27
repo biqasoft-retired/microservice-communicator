@@ -1,13 +1,17 @@
 # Microservice communicator
 
-[![Maven Central Widget]][Maven Central]  [![Download Bintray Widget]][Download Bintray] 
+Auto generate HTTP REST classes for interfaces. Currently only for spring cloud
 
-[Maven Central]: https://maven.com
+## Status
+[![Maven Central Widget]][Maven Central]  [![Download Bintray Widget]][Download Bintray] [![Javadoc Widget]][Javadoc]
+
+[Maven Central]: https://mvnrepository.com/artifact/com.biqasoft/microservice-communicator
 [Maven Central Widget]: https://img.shields.io/maven-central/v/com.biqasoft/microservice-communicator.svg
 [Download Bintray]: https://bintray.com/biqasoft/maven/microservice-communicator/_latestVersion
 [Download Bintray Widget]: https://api.bintray.com/packages/biqasoft/maven/microservice-communicator/images/download.svg
+[Javadoc]: http://www.javadoc.io/doc/com.biqasoft/microservice-communicator
+[Javadoc Widget]: https://javadoc-emblem.rhcloud.com/doc/com.biqasoft/microservice-communicator/badge.svg
 
-Auto generate HTTP REST classes for interfaces. Currently only for spring cloud
 
 ## Requirements
  - Spring 4
@@ -59,9 +63,11 @@ public class UsersRepository {
 }
 ```
 
-## Maven
+## Maven dependency
 
-```java
+To use this extension on Maven-based projects, use following dependency:
+
+```xml
 <dependency>
   <groupId>com.biqasoft</groupId>
   <artifactId>microservice-communicator</artifactId>
