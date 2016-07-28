@@ -60,9 +60,24 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test(enabled = true, invocationCount = 1)
-    public void testReturnNullBobyResponse() throws Exception {
+    public void testReturnNullBodyResponse() throws Exception {
         UserAccount account = microserviceUsersRepository.returnNullBodyResponse();
         Assert.assertNull(account);
+    }
+
+    @Test(enabled = false, invocationCount = 1)
+    public void testReturnNonNullNullBodyResponse() throws Exception {
+        MicroserviceInterfaceImpFactory.setReturnNullOnEmptyResponseBody(false);
+        UserAccount account = microserviceUsersRepository.returnNullBodyResponse();
+        Assert.assertNull(account);
+        MicroserviceInterfaceImpFactory.setReturnNullOnEmptyResponseBody(true);
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnNonNullNullBodyResponseForResponseEntity() throws Exception {
+        ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnNonNullBodyResponse();
+        Assert.assertNotNull(userAccountResponseEntity);
+        Assert.assertNull(userAccountResponseEntity.getBody());
     }
 
     @Test(enabled = true, invocationCount = 1)

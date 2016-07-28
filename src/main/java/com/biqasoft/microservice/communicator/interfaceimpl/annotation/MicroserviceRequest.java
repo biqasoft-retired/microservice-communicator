@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import java.lang.annotation.*;
 
 /**
- * Add to annotation to interface
+ * Add annotation to interface
  *
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/15/2016

@@ -54,6 +54,8 @@ public class MicroserviceInterfaceImpFactory {
         }
     };
 
+    private static boolean returnNullOnEmptyResponseBody = true;
+
     // static field for ResponseEntity<>
     static Field body = null;
 
@@ -132,7 +134,7 @@ public class MicroserviceInterfaceImpFactory {
                 return Void.TYPE;
             }
 
-            if (!responseEntity.hasBody() && !returnType.equals(ResponseEntity.class)){
+            if (!responseEntity.hasBody() && returnNullOnEmptyResponseBody && !returnType.equals(ResponseEntity.class)){
                 return null;
             }
 
@@ -146,6 +148,9 @@ public class MicroserviceInterfaceImpFactory {
             } else {
                 // return ResponseEntity<>
                 if (returnType.equals(ResponseEntity.class)) {
+                    if (!responseEntity.hasBody()){
+                        return responseEntity;
+                    }
                     ReflectionUtils.setField(body, responseEntity, objectMapper.readValue(responseEntity.getBody(), returnGenericType));
                     return responseEntity;
                 }
@@ -289,4 +294,11 @@ public class MicroserviceInterfaceImpFactory {
         return microserviceRequestInterceptors;
     }
 
+    public static boolean isReturnNullOnEmptyResponseBody() {
+        return returnNullOnEmptyResponseBody;
+    }
+
+    public static void setReturnNullOnEmptyResponseBody(boolean returnNullOnEmptyResponseBody) {
+        MicroserviceInterfaceImpFactory.returnNullOnEmptyResponseBody = returnNullOnEmptyResponseBody;
+    }
 }
