@@ -97,6 +97,9 @@ public class ServiceDiscoveryConfiguration {
 
 }
 ```
+
+## Demo
+ - [microservice-communicator-demo-server](https://github.com/biqasoft/microservice-communicator-demo-server)
  
 ### License
 Copyright © 2016 Nikita Bakaev. Licensed under the Apache License.

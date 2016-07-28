@@ -15,7 +15,7 @@ import java.util.List;
  *         Date: 7/18/2016
  *         All Rights Reserved
  */
-@MicroserviceRequest(microservice = "users")
+@MicroserviceRequest(microservice = "test-microservice")
 public interface MicroserviceUsersRepository {
 
     @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
