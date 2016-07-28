@@ -88,7 +88,7 @@ public class MicroserviceInterfaceImpFactory {
      * @param returnType        java return type in interface. If generic - collection
      * @param httpMethod        HTTP method
      * @param returnGenericType null if return type is not generic
-     * @return response from server depend on interface return method
+     * @return response from server depend on interface return method or null if remote server has not response body
      */
     private static Object makeRequestToMicroservice(Object payload, URI storesUri, Class returnType, HttpMethod httpMethod, RestTemplate restTemplate, Class returnGenericType) {
         try {
@@ -130,6 +130,10 @@ public class MicroserviceInterfaceImpFactory {
             // if we have void in interface as return - return void
             if (returnType.equals(Void.TYPE)) {
                 return Void.TYPE;
+            }
+
+            if (!responseEntity.hasBody() && !returnType.equals(ResponseEntity.class)){
+                return null;
             }
 
             // if we request byte[] return immediately

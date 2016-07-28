@@ -60,6 +60,12 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test(enabled = true, invocationCount = 1)
+    public void testReturnNullBobyResponse() throws Exception {
+        UserAccount account = microserviceUsersRepository.returnNullBodyResponse();
+        Assert.assertNull(account);
+    }
+
+    @Test(enabled = true, invocationCount = 1)
     public void testReturnGenericResponseEntity() throws Exception {
         ResponseEntity<UserAccount> allUsersInDomainMockOneResponseEntity = microserviceUsersRepository.returnGenericResponseEntity();
         Assert.assertNotNull(allUsersInDomainMockOneResponseEntity);

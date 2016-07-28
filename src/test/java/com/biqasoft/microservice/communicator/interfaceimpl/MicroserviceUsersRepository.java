@@ -21,6 +21,9 @@ public interface MicroserviceUsersRepository {
     @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
     UserAccount returnSingleObject();
 
+    @MicroserviceMapping(path = "/domain/users/mock/null", method = HttpMethod.GET)
+    UserAccount returnNullBodyResponse();
+
     @MicroserviceMapping(path = "/domain/users/mock", method = HttpMethod.GET)
     List<UserAccount> returnGenericList();
 
