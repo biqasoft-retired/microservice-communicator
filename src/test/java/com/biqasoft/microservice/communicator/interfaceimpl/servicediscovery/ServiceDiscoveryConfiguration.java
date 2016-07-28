@@ -2,7 +2,7 @@
  * Copyright (c) 2016. com.biqasoft
  */
 
-package com.biqasoft.microservice.communicator.servicediscovery;
+package com.biqasoft.microservice.communicator.interfaceimpl.servicediscovery;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.netflix.config.ConfigurationManager;

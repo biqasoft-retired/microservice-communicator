@@ -1,6 +1,6 @@
 # Microservice communicator
 
-Auto generate HTTP REST classes for interfaces. Currently only for spring cloud
+Auto generate HTTP REST classes for interfaces.
 
 ## Status
 [![Maven Central Widget]][Maven Central]  [![Download Bintray Widget]][Download Bintray] [![Javadoc Widget]][Javadoc]
@@ -15,8 +15,7 @@ Auto generate HTTP REST classes for interfaces. Currently only for spring cloud
 
 ## Requirements
  - Spring 4
- - Spring Cloud
- - Consul
+ - [Spring Cloud](http://projects.spring.io/spring-cloud/)
 
 ## Usage
  - Add `@EnableMicroserviceCommunicator` to any @Configuration class. Optionally set `basePackages` or `basePackages` from `@ComponentScan` will be used
@@ -73,6 +72,30 @@ To use this extension on Maven-based projects, use following dependency:
   <artifactId>microservice-communicator</artifactId>
   <version>1.1.1-RELEASE</version>
 </dependency>
+```
+ 
+## How works
+
+Internally, library use spring bean `LoadBalancerClient` with default implementation of spring cloud `RibbonLoadBalancerClient`. So, you can use Consul, Zookeeper, Cloudfoundry.
+ 
+if you have not configured, you can do it easily, for example for consul create configuration bean 
+
+```java
+@EnableDiscoveryClient
+@Configuration
+public class ServiceDiscoveryConfiguration {
+
+    @Value("${spring.cloud.consul.host}")
+    private String serverUrl;
+
+    public
+    @Bean
+    ConsulClient consulClient() throws Exception {
+        ConsulClient client = new ConsulClient( serverUrl );
+        return client;
+    }
+
+}
 ```
  
 ### License
