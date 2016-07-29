@@ -1,9 +1,10 @@
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
 import com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +16,16 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/25/2016
  *         All Rights Reserved
  */
-@SpringApplicationConfiguration(classes = StartApplicationTest.class)
+@SpringBootTest(classes = StartApplicationTest.class)
 @WebAppConfiguration
 @Test(suiteName = "microserviceCommunicationInterface")
 @ActiveProfiles({"development", "test"})
@@ -89,6 +92,20 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test(enabled = true, invocationCount = 1)
+    public void testReturnJson() throws Exception {
+        JsonNode jsonNode = microserviceUsersRepository.returnJson();
+        Assert.assertNotNull(jsonNode);
+        Assert.assertEquals(jsonNode.path("address").path("state").asText(), "LA");
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnJsonAsMap() throws Exception {
+        Map<String, Object> stringObjectMapperMap = microserviceUsersRepository.returnResponseAsJsonMap();
+        Assert.assertNotNull(stringObjectMapperMap);
+        Assert.assertEquals( ((LinkedHashMap)stringObjectMapperMap.get("address")).get("state"), "LA");
+    }
+
+    @Test(enabled = true, invocationCount = 1)
     public void testAfterRequestInterceptor() throws Exception {
         UserAccount userAccount = new UserAccount();
         userAccount.setId("Secret mocked id");
@@ -98,7 +115,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
 
         MicroserviceRequestInterceptor microserviceRequestInterceptor = new MicroserviceRequestInterceptor() {
             @Override
-            public void afterRequest(URI storesUri, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class returnGenericType) {
+            public void afterRequest(URI storesUri, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType) {
                 ReflectionUtils.setField(MicroserviceInterfaceImpFactory.body, responseEntity, bytes);
             }
         };

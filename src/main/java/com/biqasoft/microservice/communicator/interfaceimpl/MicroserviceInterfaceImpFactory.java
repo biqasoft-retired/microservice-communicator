@@ -11,6 +11,7 @@ import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microserv
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
 import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceHelper;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -92,7 +94,8 @@ public class MicroserviceInterfaceImpFactory {
      * @param returnGenericType null if return type is not generic
      * @return response from server depend on interface return method or null if remote server has not response body
      */
-    private static Object makeRequestToMicroservice(Object payload, URI storesUri, Class returnType, HttpMethod httpMethod, RestTemplate restTemplate, Class returnGenericType) {
+    private static Object makeRequestToMicroservice(Object payload, URI storesUri, Class returnType, HttpMethod httpMethod,
+                                                    RestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
 
@@ -157,13 +160,21 @@ public class MicroserviceInterfaceImpFactory {
                     if (!responseEntity.hasBody()) {
                         return responseEntity;
                     }
-                    ReflectionUtils.setField(body, responseEntity, objectMapper.readValue(responseEntity.getBody(), returnGenericType));
+                    ReflectionUtils.setField(body, responseEntity, objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]));
                     return responseEntity;
+                }
+
+                if (returnType.equals(Map.class) && returnGenericType.length == 2 && returnGenericType[0].equals(String.class) && returnGenericType[1].equals(Object.class)) {
+                    if (params != null && Boolean.TRUE.equals(params.get("convertResponseToMap")) ){
+                        JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
+                        Map<String, String> map = objectMapper.convertValue(jsonNode, Map.class);
+                        return map;
+                    }
                 }
 
                 // return List<>
                 if (Collection.class.isAssignableFrom(returnType)) {
-                    JavaType type = objectMapper.getTypeFactory().constructCollectionType(returnType, returnGenericType);
+                    JavaType type = objectMapper.getTypeFactory().constructCollectionType(returnType, returnGenericType[0]);
                     return objectMapper.readValue(responseEntity.getBody(), type);
                 }
             }
@@ -212,9 +223,10 @@ public class MicroserviceInterfaceImpFactory {
 
                     String annotatedPath = microserviceCall.annotatedPath;
                     HttpMethod httpMethod = microserviceCall.httpMethod;
-                    Class returnGenericType = microserviceCall.returnGenericType;
+                    Class[] returnGenericType = microserviceCall.returnGenericType;
                     Class<?> microserviceReturnType = microserviceCall.microserviceReturnType;
                     String microserviceName = microserviceCall.microserviceName;
+                    boolean convertJsonToMap = microserviceCall.convertResponseToMap;
 
                     Object payload = null;
 
@@ -238,7 +250,10 @@ public class MicroserviceInterfaceImpFactory {
                         }
 
                         if (!StringUtils.isEmpty(param.param())) {
-                            annotatedPath = annotatedPath.replace("{" + param.param() + "}", (String) Arrays.asList(objects).get(field1));
+                            String paramValue = (String) Arrays.asList(objects).get(field1);
+                            paramValue = URLEncoder.encode(paramValue, "UTF-8");
+
+                            annotatedPath = annotatedPath.replace("{" + param.param() + "}", paramValue);
                             paramsForMappingUrl++;
                         }
                     }
@@ -259,7 +274,15 @@ public class MicroserviceInterfaceImpFactory {
 
                     URI uri = getMicroserviceURI(microserviceName, annotatedPath);
                     RestTemplate restTemplate = getRestTemplate(microserviceCall.tryToReconnect, microserviceCall.tryToReconnectTimes, microserviceCall.sleepTimeBetweenTrying);
-                    Object result = makeRequestToMicroservice(payload, uri, microserviceReturnType, httpMethod, restTemplate, returnGenericType);
+
+                    Map<String, Object> param = null;
+
+                    if (convertJsonToMap){
+                        param = new HashMap<>();
+                        param.put("convertResponseToMap", true);
+                    }
+
+                    Object result = makeRequestToMicroservice(payload, uri, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
 
                     logger.debug("End microservice method {} in {}", method.getName(), o.toString());
                     return result;
@@ -274,11 +297,12 @@ public class MicroserviceInterfaceImpFactory {
 
     static class CachedMicroserviceCall {
         Class<?> microserviceReturnType = null;
-        Class returnGenericType = null;
+        Class[] returnGenericType = null;
         HttpMethod httpMethod = null;
         String annotatedPath = null;
         String microserviceName = null;
 
+        boolean convertResponseToMap = false;
         boolean tryToReconnect;
         int tryToReconnectTimes;
         int sleepTimeBetweenTrying;

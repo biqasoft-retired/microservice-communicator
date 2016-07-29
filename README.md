@@ -26,23 +26,35 @@ Auto generate HTTP REST classes for interfaces.
 public interface MicroserviceUsersRepositoryTest {
 
     @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
-    UserAccount returnSingleObject();
-
-    @MicroserviceMapping(path = "/domain/users/mock", method = HttpMethod.GET)
-    List<UserAccount> returnGenericList();
-
-    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
-    ResponseEntity<UserAccount> returnGenericResponseEntity();
-
-    // russian special language
-    // equals to findAllUsersInDomainMock() - GET /domain/users/mock
-    @MicroserviceMapping
-    List<UserAccount> построитьПолучитьМестоDomainГдеUsersГдеMock();
-
-    // in tests url will be /domain/users/mock/one
-    @MicroserviceMapping(path = "/domain/{s1}/{s2}/one", method = HttpMethod.GET)
-    UserAccount returnSingleObjectWithPathParam(@MicroservicePathVariable(param = "s1") String s,
-                                                @MicroservicePathVariable(param = "s2") String s2);
+       UserAccount returnSingleObject();
+   
+       @MicroserviceMapping(path = "/domain/users/mock/null", method = HttpMethod.GET)
+       UserAccount returnNullBodyResponse();
+   
+       @MicroserviceMapping(path = "/domain/users/mock/null", method = HttpMethod.GET)
+       ResponseEntity<UserAccount> returnNonNullBodyResponse();
+   
+       @MicroserviceMapping(path = "/domain/users/mock", method = HttpMethod.GET)
+       List<UserAccount> returnGenericList();
+   
+       @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+       ResponseEntity<UserAccount> returnGenericResponseEntity();
+   
+       // russian special language
+       // equals to findAllUsersInDomainMock() - GET /domain/users/mock
+       @MicroserviceMapping
+       List<UserAccount> построитьПолучитьМестоDomainГдеUsersГдеMock();
+   
+       // in tests url will be /domain/users/mock/one
+       @MicroserviceMapping(path = "/domain/{s1}/{s2}/one", method = HttpMethod.GET)
+       UserAccount returnSingleObjectWithPathParam(@MicroservicePathVariable(param = "s1") String s,
+                                                   @MicroservicePathVariable(param = "s2") String s2);
+   
+       @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+       JsonNode returnJson();
+   
+       @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET, convertResponseToMap = true)
+       Map<String, Object> returnResponseAsJsonMap();
 
 }
 ```

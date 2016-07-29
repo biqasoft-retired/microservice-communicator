@@ -54,7 +54,7 @@ public class MicroserviceCachedParsedAnnotationInterface {
         MicroserviceInterfaceImpFactory.SpecialLanguage specialLanguage = SpecialLanguageNotation.isProcessSpecialLanguageNotation(method);
 
         MicroserviceMapping microserviceMapping = method.getDeclaredAnnotation(MicroserviceMapping.class);
-        Class returnGenericType = null;
+        Class[] returnGenericType = null;
         Class<?> microserviceReturnType = null;
         String microserviceName = null;
 
@@ -68,13 +68,19 @@ public class MicroserviceCachedParsedAnnotationInterface {
             // get generic type...
             try {
                 Type<?> returnType = Type.of(aClass).getMethod(method.getName()).getReturnType();
+                int genericsParamNumber = returnType.getGenericTypeParameters().size();
 
-                if (returnType.isGenericType() && returnType.getGenericTypeParameters().size() > 0) {
+                if (returnType.isGenericType() && genericsParamNumber > 0) {
+                    returnGenericType = new Class[genericsParamNumber];
+
                     Method allGenericsMethod = returnType.getClass().getDeclaredMethod("getTypeBindings");
                     allGenericsMethod.setAccessible(true);
 
                     TypeBindings getTypeBindings = (TypeBindings) allGenericsMethod.invoke(returnType);
-                    returnGenericType = Class.forName(getTypeBindings.getBoundType(0).getTypeName());
+
+                    for (int i = 0; i < genericsParamNumber; i++) {
+                        returnGenericType[i] = Class.forName(getTypeBindings.getBoundType(i).getTypeName());
+                    }
                 }
             } catch (Exception e) {
                 returnGenericType = null;
@@ -91,6 +97,7 @@ public class MicroserviceCachedParsedAnnotationInterface {
             cachedMicroserviceCall.tryToReconnect = microserviceMapping.tryToReconnect();
             cachedMicroserviceCall.tryToReconnectTimes = microserviceMapping.tryToReconnectTimes();
             cachedMicroserviceCall.sleepTimeBetweenTrying = microserviceMapping.sleepTimeBetweenTrying();
+            cachedMicroserviceCall.convertResponseToMap = microserviceMapping.convertResponseToMap();
         } else {
             SpecialLanguageNotation.processSpecialLanguageNotation(cachedMicroserviceCall, method, o, specialLanguage);
         }

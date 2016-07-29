@@ -5,10 +5,12 @@ import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microserv
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePathVariable;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
 import com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -42,4 +44,9 @@ public interface MicroserviceUsersRepository {
     @MicroserviceMapping(path = "/domain/{s1}/{s2}/one", method = HttpMethod.GET)
     UserAccount returnSingleObjectWithPathParam(@MicroservicePathVariable(param = "s1") String s, @MicroservicePathVariable(param = "s2") String s2);
 
+    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+    JsonNode returnJson();
+
+    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET, convertResponseToMap = true)
+    Map<String, Object> returnResponseAsJsonMap();
 }

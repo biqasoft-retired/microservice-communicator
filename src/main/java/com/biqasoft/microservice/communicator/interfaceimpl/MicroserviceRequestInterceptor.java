@@ -21,8 +21,8 @@ import java.net.URI;
 public interface MicroserviceRequestInterceptor {
 
    // you can modify http request headers here
-   default void beforeCreateHttpEntity(URI storesUri, HttpMethod httpMethod, Class returnType, Class returnGenericType, HttpHeaders httpHeaders){};
-   default void beforeRequest(URI storesUri, HttpMethod httpMethod, HttpEntity<Object> request, Class returnType, Class returnGenericType){};
-   default void afterRequest(URI storesUri, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class returnGenericType){};
+   default void beforeCreateHttpEntity(URI storesUri, HttpMethod httpMethod, Class returnType, Class[] returnGenericType, HttpHeaders httpHeaders){};
+   default void beforeRequest(URI storesUri, HttpMethod httpMethod, HttpEntity<Object> request, Class returnType, Class[] returnGenericType){};
+   default void afterRequest(URI storesUri, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType){};
 
 }

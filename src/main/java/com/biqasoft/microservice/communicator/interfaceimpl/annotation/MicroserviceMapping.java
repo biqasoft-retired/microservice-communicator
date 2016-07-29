@@ -48,6 +48,8 @@ public @interface MicroserviceMapping {
      */
     int sleepTimeBetweenTrying() default 1000;
 
+    boolean convertResponseToMap() default false;
+
 //    MediaType contentType() default MediaType.APPLICATION_JSON;
 //    String[] produces() default {};
 //    String[] consumes() default {};
