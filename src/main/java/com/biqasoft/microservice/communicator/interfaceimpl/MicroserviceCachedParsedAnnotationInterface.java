@@ -68,9 +68,10 @@ public class MicroserviceCachedParsedAnnotationInterface {
             // get generic type...
             try {
                 Type<?> returnType = Type.of(aClass).getMethod(method.getName()).getReturnType();
-                int genericsParamNumber = returnType.getGenericTypeParameters().size();
 
-                if (returnType.isGenericType() && genericsParamNumber > 0) {
+                if (returnType.isGenericType() && returnType.getGenericTypeParameters().size() > 0) {
+                    int genericsParamNumber = returnType.getGenericTypeParameters().size();
+
                     returnGenericType = new Class[genericsParamNumber];
 
                     Method allGenericsMethod = returnType.getClass().getDeclaredMethod("getTypeBindings");

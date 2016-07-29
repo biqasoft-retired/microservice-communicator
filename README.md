@@ -86,7 +86,7 @@ To use this extension on Maven-based projects, use following dependency:
 </dependency>
 ```
  
-## How works
+## How it works
 
 Internally, library use spring bean `LoadBalancerClient` with default implementation of spring cloud `RibbonLoadBalancerClient`. So, you can use Consul, Zookeeper, Cloudfoundry.
  
@@ -112,6 +112,7 @@ public class ServiceDiscoveryConfiguration {
 
 ## Demo
  - [microservice-communicator-demo-server](https://github.com/biqasoft/microservice-communicator-demo-server)
+ - `MicroserviceUsersRepositoryTest` for interface usage
  
 ### License
 Copyright © 2016 Nikita Bakaev. Licensed under the Apache License.

@@ -29,24 +29,20 @@ public class MicroserviceHelper {
     private final int FAIL_AFTER_UNSUCCESS_TIMES = 11;
     private final int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1000;
 
-    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource) {
-        return getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, DEFAULT_SLEEP_TIME_BETWEEN_TRYING, true);
-    }
-
     /**
-     * @param microserviceName  - registered service name. For example gateway
-     * @param pathToApiResource - URl path such as /users/all
-     * @param sleepMillias      - sleep time if we can not get hostname of micoservice
-     * @param tryToReconnect    if we can not get hostname of micoservice - fail immediately or sleep and try to get
+     * @param microserviceName  registered service name. For example gateway
+     * @param pathToApiResource URl path such as /users/all
+     * @param sleepMilliseconds      sleep time if we can not resolve hostname of microservice
+     * @param tryToReconnect    if we can not get hostname of microservice - fail immediately or sleep and try to get
      * @return URL to which make request
+     * @throws CannotResolveHostException if can not get microservice name for microserviceName in service discovery
      */
-    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource, Integer sleepMillias, Boolean tryToReconnect) {
-
+    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource, Integer sleepMilliseconds, Boolean tryToReconnect) {
         ServiceInstance instance = null;
 
         boolean exitLoop = false;
         int triedTimes = 0;
-        int sleepTimeBetweenTrying = sleepMillias == null ? DEFAULT_SLEEP_TIME_BETWEEN_TRYING : sleepMillias;
+        int sleepTimeBetweenTrying = sleepMilliseconds == null ? DEFAULT_SLEEP_TIME_BETWEEN_TRYING : sleepMilliseconds;
 
         while (!exitLoop) {
             instance = loadBalancerClient.choose(microserviceName);

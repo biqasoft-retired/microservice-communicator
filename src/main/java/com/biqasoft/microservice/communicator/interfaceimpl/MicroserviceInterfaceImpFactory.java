@@ -7,6 +7,7 @@ package com.biqasoft.microservice.communicator.interfaceimpl;
 import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
 import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.http.HttpClientsHelpers;
+import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePathVariable;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
 import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceHelper;
@@ -82,10 +83,6 @@ public class MicroserviceInterfaceImpFactory {
         MicroserviceInterfaceImpFactory.microserviceRequestInterceptors = microserviceRequestInterceptors;
     }
 
-    private static RestTemplate getRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying) {
-        return HttpClientsHelpers.getRestTemplate(tryToReconnect, tryToReconnectTimes, sleepTimeBetweenTrying);
-    }
-
     /**
      * @param payload           object that will be send in HTTP POST and PUT methods
      * @param storesUri         http URI
@@ -94,8 +91,9 @@ public class MicroserviceInterfaceImpFactory {
      * @param returnGenericType null if return type is not generic
      * @return response from server depend on interface return method or null if remote server has not response body
      */
-    private static Object makeRequestToMicroservice(Object payload, URI storesUri, Class returnType, HttpMethod httpMethod,
-                                                    RestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
+    private static Object makeRequestToMicroservice(Object payload, Class returnType, HttpMethod httpMethod,
+                                                    MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
+        URI storesUri = restTemplate.getUrl();
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
 
@@ -187,10 +185,6 @@ public class MicroserviceInterfaceImpFactory {
         }
     }
 
-    private static URI getMicroserviceURI(String microserviceName, String microserviceMapping) {
-        return microserviceHelper.getLoadBalancedURIByMicroservice(microserviceName, microserviceMapping);
-    }
-
     /**
      * Create microservice implementation
      *
@@ -272,9 +266,8 @@ public class MicroserviceInterfaceImpFactory {
                         payload = objects[0];
                     }
 
-                    URI uri = getMicroserviceURI(microserviceName, annotatedPath);
-                    RestTemplate restTemplate = getRestTemplate(microserviceCall.tryToReconnect, microserviceCall.tryToReconnectTimes, microserviceCall.sleepTimeBetweenTrying);
-
+                    MicroserviceRestTemplate restTemplate = HttpClientsHelpers.getRestTemplate(microserviceCall.tryToReconnect, microserviceCall.tryToReconnectTimes,
+                                                                                   microserviceCall.sleepTimeBetweenTrying, microserviceName, annotatedPath);
                     Map<String, Object> param = null;
 
                     if (convertJsonToMap){
@@ -282,7 +275,7 @@ public class MicroserviceInterfaceImpFactory {
                         param.put("convertResponseToMap", true);
                     }
 
-                    Object result = makeRequestToMicroservice(payload, uri, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
+                    Object result = makeRequestToMicroservice(payload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
 
                     logger.debug("End microservice method {} in {}", method.getName(), o.toString());
                     return result;

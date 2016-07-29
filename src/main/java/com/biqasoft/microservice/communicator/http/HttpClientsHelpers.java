@@ -5,7 +5,8 @@
 package com.biqasoft.microservice.communicator.http;
 
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
+
+import java.net.URISyntaxException;
 
 /**
  * Created by Nikita Bakaev, ya@nbakaev.ru on 5/24/2016.
@@ -19,20 +20,8 @@ public class HttpClientsHelpers {
      *
      * @return new default spring HTTP restTemplate
      */
-    public static RestTemplate getRestTemplate() {
-        RestTemplate restTemplate = new MicroserviceRestTemplate();
-        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        return restTemplate;
-    }
-
-    public static RestTemplate getRestTemplate(Boolean tryToReconnect) {
-        RestTemplate restTemplate = new MicroserviceRestTemplate(tryToReconnect);
-        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        return restTemplate;
-    }
-
-    public static RestTemplate getRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying) {
-        RestTemplate restTemplate = new MicroserviceRestTemplate(tryToReconnect, tryToReconnectTimes, sleepTimeBetweenTrying);
+    public static MicroserviceRestTemplate getRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource) throws URISyntaxException {
+        MicroserviceRestTemplate restTemplate = new MicroserviceRestTemplate(tryToReconnect, tryToReconnectTimes, sleepTimeBetweenTrying, microserviceName, pathToApiResource);
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         return restTemplate;
     }
