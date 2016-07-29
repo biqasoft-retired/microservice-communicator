@@ -140,7 +140,7 @@ public class MicroserviceInterfaceImpFactory {
                 return Void.TYPE;
             }
 
-            if (!responseEntity.hasBody() && returnNullOnEmptyResponseBody && !returnType.equals(ResponseEntity.class)){
+            if (!responseEntity.hasBody() && returnNullOnEmptyResponseBody && !returnType.equals(ResponseEntity.class)) {
                 return null;
             }
 
@@ -154,7 +154,7 @@ public class MicroserviceInterfaceImpFactory {
             } else {
                 // return ResponseEntity<>
                 if (returnType.equals(ResponseEntity.class)) {
-                    if (!responseEntity.hasBody()){
+                    if (!responseEntity.hasBody()) {
                         return responseEntity;
                     }
                     ReflectionUtils.setField(body, responseEntity, objectMapper.readValue(responseEntity.getBody(), returnGenericType));
@@ -171,7 +171,7 @@ public class MicroserviceInterfaceImpFactory {
             throw new InvalidStateException("Internal error processing. Retry later");
 
         } catch (Exception e) {
-            logger.error("Can not get bytes from microservice", e);
+            logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), storesUri.toString(), e);
             throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");
         }
     }
@@ -223,7 +223,7 @@ public class MicroserviceInterfaceImpFactory {
 
                     // replace {} in annotated URL
                     for (Object o1 : method.getParameters()) {
-                        if  (!(((Parameter) o1).getType().equals(String.class))  ) {
+                        if (!(((Parameter) o1).getType().equals(String.class))) {
                             continue;
                         }
 
@@ -233,7 +233,7 @@ public class MicroserviceInterfaceImpFactory {
                         Integer field1 = (Integer) ReflectionUtils.getField(field, parameter);
 
                         MicroservicePathVariable param = parameter.getDeclaredAnnotation((MicroservicePathVariable.class));
-                        if (param == null || StringUtils.isEmpty(param.param())){
+                        if (param == null || StringUtils.isEmpty(param.param())) {
                             continue;
                         }
 
@@ -306,5 +306,13 @@ public class MicroserviceInterfaceImpFactory {
 
     public static void setReturnNullOnEmptyResponseBody(boolean returnNullOnEmptyResponseBody) {
         MicroserviceInterfaceImpFactory.returnNullOnEmptyResponseBody = returnNullOnEmptyResponseBody;
+    }
+
+    public static ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
+
+    public static MicroserviceHelper getMicroserviceHelper() {
+        return microserviceHelper;
     }
 }
