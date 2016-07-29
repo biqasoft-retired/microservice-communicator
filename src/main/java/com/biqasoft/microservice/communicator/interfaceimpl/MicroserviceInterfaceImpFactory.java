@@ -105,6 +105,12 @@ public class MicroserviceInterfaceImpFactory {
                 httpHeaders.setContentType(MediaType.APPLICATION_JSON);
             }
 
+            if (microserviceRequestInterceptors != null) {
+                microserviceRequestInterceptors.forEach(x -> {
+                    x.beforeCreateHttpEntity(storesUri, httpMethod, returnType, returnGenericType, httpHeaders);
+                });
+            }
+
             HttpEntity<Object> request;
             if (payload == null) {
                 request = new HttpEntity<>(httpHeaders);
