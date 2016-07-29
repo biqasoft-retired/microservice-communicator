@@ -15,23 +15,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
 
-        <!-- same as com.fasterxml.jackson.dataformat -->
-        <com.fasterxml.jackson.version>2.7.4</com.fasterxml.jackson.version>
-        <jackson-mapper-asl.version>1.9.13</jackson-mapper-asl.version>
-
-        <!-- Spring -->
-        <org.springframework.version>4.3.1.RELEASE</org.springframework.version>
-        <spring-security.version>4.1.1.RELEASE</spring-security.version>
-        <org.springframework.cloud.spring-cloud-starter-consul-all>1.0.2.RELEASE</org.springframework.cloud.spring-cloud-starter-consul-all>
-
-        <commons-io.version>2.4</commons-io.version>
-        <httpcore.version>4.4.4</httpcore.version>
-        <consul-api.version>1.1.10</consul-api.version>
-
-        <!-- logging -->
-        <org.slf4j.version>1.7.21</org.slf4j.version>
-        <ch.qos.logback.logback-classic.version>1.1.7</ch.qos.logback.logback-classic.version>
-
         <!-- Maven plugins -->
         <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
@@ -41,16 +24,25 @@
 
         <!--testing -->
         <testng.version>6.9.10</testng.version>
-        <spring-boot-starter.version>1.3.6.RELEASE</spring-boot-starter.version>
-        <spring-cloud-commons.version>1.1.0.RELEASE</spring-cloud-commons.version>
+        <spring-boot-dependencies.version>1.4.0.RELEASE</spring-boot-dependencies.version>
+        <spring-cloud-consul-dependencies.version>1.0.2.RELEASE</spring-cloud-consul-dependencies.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <!-- Import dependency management from Spring Boot -->
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-consul-dependencies</artifactId>
-                <version>${org.springframework.cloud.spring-cloud-starter-consul-all}</version>
+                <version>${spring-cloud-consul-dependencies.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -110,22 +102,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring-boot-starter.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-dependencies</artifactId>
-            <version>${spring-boot-starter.version}</version>
-            <scope>test</scope>
-            <type>pom</type>
         </dependency>
 
         <dependency>
             <groupId>com.ecwid.consul</groupId>
             <artifactId>consul-api</artifactId>
-            <version>${consul-api.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -138,81 +120,63 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-commons</artifactId>
-            <version>${spring-cloud-commons.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>${org.springframework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
-            <version>${org.springframework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>${org.springframework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
-            <version>${org.springframework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
-            <version>${org.springframework.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
-            <version>${com.fasterxml.jackson.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
-            <version>${com.fasterxml.jackson.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-mapper-asl</artifactId>
-            <version>${jackson-mapper-asl.version}</version>
         </dependency>
 
         <!-- logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>${org.slf4j.version}</version>
         </dependency>
 
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>${ch.qos.logback.logback-classic.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>${org.slf4j.version}</version>
         </dependency>
 
         <!-- needed to bridge to slf4j for projects that use the log4j APIs directly -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>${org.slf4j.version}</version>
         </dependency>
 
         <dependency>
@@ -225,7 +189,6 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>${org.springframework.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>commons-logging</artifactId>
