@@ -48,6 +48,19 @@ public class MicroserviceRestTemplate extends RestTemplate {
     private String microserviceName;
     private String pathToApiResource;
 
+    private final static int DEFAULT_TRY_TO_RECONNECT_TIMES = 11;
+    private final static int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1000;
+
+    public MicroserviceRestTemplate(String microserviceName, String pathToApiResource ) throws URISyntaxException {
+        super(new org.springframework.http.client.HttpComponentsClientHttpRequestFactory());
+        this.tryToReconnect = true;
+        this.tryToReconnectTimes = DEFAULT_TRY_TO_RECONNECT_TIMES;
+        this.sleepTimeBetweenTrying = DEFAULT_SLEEP_TIME_BETWEEN_TRYING;
+        this.microserviceName = microserviceName;
+        this.pathToApiResource = pathToApiResource;
+        this.url = SpringInjectorHelper.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect);
+    }
+
     /**
      * {@link RestTemplate} that tried to reconnect or error
      *

@@ -29,6 +29,10 @@ public class MicroserviceHelper {
     private final int FAIL_AFTER_UNSUCCESS_TIMES = 11;
     private final int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1000;
 
+    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource) {
+        return getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, DEFAULT_SLEEP_TIME_BETWEEN_TRYING, true);
+    }
+
     /**
      * @param microserviceName  registered service name. For example gateway
      * @param pathToApiResource URl path such as /users/all

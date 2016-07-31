@@ -31,10 +31,6 @@ import java.util.Map;
 @ActiveProfiles({"development", "test"})
 public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContextTests {
 
-    static {
-        System.setProperty("spring.cloud.consul.host", "192.168.127.131");
-    }
-
     @Autowired
     private MicroserviceUsersRepository microserviceUsersRepository;
 

@@ -5,6 +5,7 @@
 package com.biqasoft.microservice.communicator.http;
 
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
 
 import java.net.URISyntaxException;
 
@@ -22,6 +23,12 @@ public class HttpClientsHelpers {
      */
     public static MicroserviceRestTemplate getRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource) throws URISyntaxException {
         MicroserviceRestTemplate restTemplate = new MicroserviceRestTemplate(tryToReconnect, tryToReconnectTimes, sleepTimeBetweenTrying, microserviceName, pathToApiResource);
+        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
+        return restTemplate;
+    }
+
+    public static RestTemplate getRestTemplate() {
+        RestTemplate restTemplate = new RestTemplate(new org.springframework.http.client.HttpComponentsClientHttpRequestFactory());
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         return restTemplate;
     }

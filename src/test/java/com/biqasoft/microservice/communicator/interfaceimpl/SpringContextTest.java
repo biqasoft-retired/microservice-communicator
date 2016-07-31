@@ -17,10 +17,6 @@ import org.testng.annotations.Test;
 @ActiveProfiles({"development", "test"})
 public class SpringContextTest extends AbstractTestNGSpringContextTests {
 
-    static {
-        System.setProperty("spring.cloud.consul.host", "192.168.127.131");
-    }
-
     @Test
     public void initSpringContextPure() throws Exception {
     }

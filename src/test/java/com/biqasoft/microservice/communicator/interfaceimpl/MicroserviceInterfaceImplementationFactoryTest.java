@@ -19,10 +19,6 @@ import org.testng.annotations.Test;
 @ActiveProfiles({"development", "test"})
 public class MicroserviceInterfaceImplementationFactoryTest extends AbstractTestNGSpringContextTests {
 
-    static {
-        System.setProperty("spring.cloud.consul.host", "192.168.127.131");
-    }
-
     @Test(enabled = true)
     public void testCreate() throws Exception {
         Object o = MicroserviceInterfaceImpFactory.create(MicroserviceUsersRepository.class);
