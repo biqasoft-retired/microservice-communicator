@@ -6,9 +6,8 @@ jdk:
 - oraclejdk8
 before_install:
 - "$BASE_DIR/deploy/prepare_ci.sh"
-- pip install --user codecov
 after_success:
-- codecov
+- bash <(curl -s https://codecov.io/bash)
 - "$BASE_DIR/deploy/ci.sh"
 notifications:
   email: false
