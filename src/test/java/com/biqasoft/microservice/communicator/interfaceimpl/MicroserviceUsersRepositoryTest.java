@@ -133,6 +133,28 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test(enabled = true, invocationCount = 1)
+    public void testReturnAuthenticatedUser() throws Exception {
+        String username = "Nikita";
+        String password = "super_secret_password";
+        UserAccount account = microserviceUsersRepository.returnAuthenticatedUser(username, password);
+
+        Assert.assertEquals(account.getFirstname(), username);
+        Assert.assertEquals(account.getLastname(), password);
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testEcho() throws Exception {
+        String username = "Nikita";
+        String password = "super_secret_password";
+        String country = "LAAAAA";
+        UserAccount account = microserviceUsersRepository.returnAuthenticatedUserComplexEcho(username, password, country);
+
+        Assert.assertEquals(account.getUsername(), username);
+        Assert.assertEquals(account.getPassword(), password);
+        Assert.assertEquals(account.getAddress().getCountry(), country);
+    }
+
+    @Test(enabled = true, invocationCount = 1)
     public void testReturnInvalidServerExceptionEntity() throws Exception {
         try {
             ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnInvalidServerExceptionEntity();

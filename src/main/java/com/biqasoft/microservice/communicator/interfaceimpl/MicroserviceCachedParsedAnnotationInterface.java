@@ -99,6 +99,7 @@ public class MicroserviceCachedParsedAnnotationInterface {
             cachedMicroserviceCall.tryToReconnectTimes = microserviceMapping.tryToReconnectTimes();
             cachedMicroserviceCall.sleepTimeBetweenTrying = microserviceMapping.sleepTimeBetweenTrying();
             cachedMicroserviceCall.convertResponseToMap = microserviceMapping.convertResponseToMap();
+            cachedMicroserviceCall.mergePayloadToObject = microserviceMapping.mergePayloadToObject();
         } else {
             SpecialLanguageNotation.processSpecialLanguageNotation(cachedMicroserviceCall, method, o, specialLanguage);
         }

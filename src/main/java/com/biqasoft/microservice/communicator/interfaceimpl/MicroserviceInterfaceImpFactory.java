@@ -10,11 +10,14 @@ import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.http.HttpClientsHelpers;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePathVariable;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePayloadVariable;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
 import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceHelper;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +52,9 @@ public class MicroserviceInterfaceImpFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceInterfaceImpFactory.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JsonNodeFactory factory = JsonNodeFactory.instance;
 
     private static MicroserviceHelper microserviceHelper;
-
     public final static ThreadLocal<Map<String, String>> httpHeadersThreadLocal = new ThreadLocal<Map<String, String>>() {
         @Override
         protected Map<String, String> initialValue() {
@@ -126,7 +129,7 @@ public class MicroserviceInterfaceImpFactory {
                 });
             }
 
-            ResponseEntity<byte[]> responseEntity = null;
+            ResponseEntity<byte[]> responseEntity;
             try {
                 // get all responses as byte[] and if we request object - deserialize then
                 responseEntity = restTemplate.exchange(storesUri, httpMethod, request, byte[].class);
@@ -153,9 +156,8 @@ public class MicroserviceInterfaceImpFactory {
             }
 
             if (microserviceRequestInterceptors != null) {
-                ResponseEntity<byte[]> finalResponseEntity = responseEntity;
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.afterRequest(storesUri, httpMethod, request, finalResponseEntity, returnType, returnGenericType);
+                    x.afterRequest(storesUri, httpMethod, request, responseEntity, returnType, returnGenericType);
                 });
             }
 
@@ -202,7 +204,7 @@ public class MicroserviceInterfaceImpFactory {
                 }
             }
 
-            throw new InvalidStateException("Internal error processing. Retry later");
+            throw new InvalidStateException("Internal error processing. Retry later"); // invalid @annotation
 
         } catch (IOException e) {
             logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), storesUri.toString(), e);
@@ -246,6 +248,7 @@ public class MicroserviceInterfaceImpFactory {
                     Class<?> microserviceReturnType = microserviceCall.microserviceReturnType;
                     String microserviceName = microserviceCall.microserviceName;
                     boolean convertJsonToMap = microserviceCall.convertResponseToMap;
+                    boolean mergePayloadToObject = microserviceCall.mergePayloadToObject;
 
                     Object payload = null;
 
@@ -277,8 +280,59 @@ public class MicroserviceInterfaceImpFactory {
                         }
                     }
 
+                    if (mergePayloadToObject) {
+                        ObjectNode rootNode = factory.objectNode();
+                        payload = rootNode;
+                        int paramIndex = 0;
+
+                        // replace {} in annotated URL
+                        for (Object o1 : method.getParameters()) {
+                            Parameter parameter = (Parameter) o1;
+                            Field field = parameter.getClass().getDeclaredField("index");
+                            field.setAccessible(true);
+
+                            MicroservicePayloadVariable param = parameter.getDeclaredAnnotation((MicroservicePayloadVariable.class));
+                            if (param == null) {
+                                continue;
+                            }
+
+                            String jsonName;
+
+                            if (!StringUtils.isEmpty(param.path())) {
+                                jsonName = param.path();
+                            } else {
+                                jsonName = parameter.getName();
+                            }
+
+                            ObjectNode latestNode = rootNode;
+                            if (jsonName.contains(".")) {
+                                String[] split = jsonName.split("\\.");
+                                int i =0;
+                                for (String s : split) {
+                                    if ( (i+1) == split.length){
+                                        break;
+                                    }
+
+                                    if (latestNode.path(s).isObject()) {
+                                        latestNode = (ObjectNode) latestNode.path(s);
+                                    } else {
+                                        ObjectNode newNode = factory.objectNode();
+                                        latestNode.set(s, newNode);
+                                        latestNode = newNode;
+                                    }
+                                    i++;
+                                }
+                                jsonName = split[split.length - 1];
+                            }
+
+                            JsonNode node = objectMapper.convertValue(objects[paramIndex], JsonNode.class);
+                            latestNode.set(jsonName, node);
+                            paramIndex++;
+                        }
+                    }
+
                     // only POST and PUT can have payload
-                    if (httpMethod.equals(HttpMethod.POST) || httpMethod.equals(HttpMethod.PUT)) {
+                    if ((httpMethod.equals(HttpMethod.POST) || httpMethod.equals(HttpMethod.PUT)) && payload == null) {
                         if (objects.length >= 1) {
                             // +1 - this is payload param
                             if ((paramsForMappingUrl + 1) != objects.length) {
@@ -321,6 +375,7 @@ public class MicroserviceInterfaceImpFactory {
         String microserviceName = null;
 
         boolean convertResponseToMap = false;
+        boolean mergePayloadToObject = false;
         boolean tryToReconnect;
         int tryToReconnectTimes;
         int sleepTimeBetweenTrying;

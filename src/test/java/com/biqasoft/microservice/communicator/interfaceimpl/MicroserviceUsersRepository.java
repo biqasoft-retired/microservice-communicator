@@ -3,6 +3,7 @@ package com.biqasoft.microservice.communicator.interfaceimpl;
 
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceMapping;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePathVariable;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePayloadVariable;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
 import com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,7 +43,8 @@ public interface MicroserviceUsersRepository {
 
     // in tests url will be /domain/users/mock/one
     @MicroserviceMapping(path = "/domain/{s1}/{s2}/one", method = HttpMethod.GET)
-    UserAccount returnSingleObjectWithPathParam(@MicroservicePathVariable(param = "s1") String s, @MicroservicePathVariable(param = "s2") String s2);
+    UserAccount returnSingleObjectWithPathParam(@MicroservicePathVariable(param = "s1") String s,
+                                                @MicroservicePathVariable(param = "s2") String s2);
 
     @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
     JsonNode returnJson();
@@ -61,5 +63,15 @@ public interface MicroserviceUsersRepository {
 
     @MicroserviceMapping(path = "/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request", method = HttpMethod.GET)
     ResponseEntity<UserAccount> returnInvalidServerExceptionEntity();
+
+    @MicroserviceMapping(path = "/domain/users/mock/authenticate", method = HttpMethod.POST, mergePayloadToObject = true)
+    UserAccount returnAuthenticatedUser(@MicroservicePayloadVariable(path = "username") String username, @MicroservicePayloadVariable(path = "password") String password);
+
+    // will be POST json {"username": %username%, "username": "password": %password%, address : { "country": %addressCountry% } }
+    // %username% etc... will be replaced by java function param
+    @MicroserviceMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST, mergePayloadToObject = true)
+    UserAccount returnAuthenticatedUserComplexEcho(@MicroservicePayloadVariable(path = "username") String username,
+                                                   @MicroservicePayloadVariable(path = "password") String password,
+                                                   @MicroservicePayloadVariable(path = "address.country") String addressCountry);
 
 }

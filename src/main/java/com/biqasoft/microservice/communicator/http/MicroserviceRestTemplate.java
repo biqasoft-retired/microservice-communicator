@@ -157,7 +157,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
                     return null;
                 }
 
-            } catch (IOException | HttpServerErrorException e) {
+            } catch (IOException | RestClientException e) {
                 try {
                     logger.info("Can not make http request {} {} {} times={}", request.getMethod().toString(), request.getURI().toString(), response.getStatusText(), triedTimes);
                 } catch (Exception e1) {
