@@ -84,7 +84,7 @@ To use this extension on Maven-based projects, use following dependency:
 <dependency>
   <groupId>com.biqasoft</groupId>
   <artifactId>microservice-communicator</artifactId>
-  <version>1.1.3-RELEASE</version>
+  <version>1.1.9-RELEASE</version>
 </dependency>
 ```
  
@@ -115,6 +115,17 @@ public class ServiceDiscoveryConfiguration {
 ## Demo
  - [microservice-communicator-demo-server](https://github.com/biqasoft/microservice-communicator-demo-server)
  - `MicroserviceUsersRepositoryTest` for interface usage
- 
+
+## Exceptions
+If you have return type `ResponseEntity` you will never have exceptions from method. For example with `responseEntity.getStatusCode().is2xxSuccessful()`.
+Also, you have access to headers and body with `responseEntity.getHeaders()` and `responseEntity.getBody()`
+
+If you have return type some object (not ResponseEntity) following unchecked exceptions can be thrown:
+
+ - `InvalidRequestException` this exceptions is throws if remote host set HTTP status 422 (Unprocessable Entity).
+When we recieve such response, we immedialty throw exception, without trying new requests to another microservices
+ - `InternalSeverErrorProcessingRequestException` if we have non 422 response code, can not find suitable microservice URL in service discovery predetermined number of time,
+or can not retry request to microservices predetermined number of times(on error)
+
 ### License
 Copyright © 2016 Nikita Bakaev. Licensed under the Apache License.
