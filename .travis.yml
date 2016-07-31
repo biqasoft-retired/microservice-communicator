@@ -7,8 +7,8 @@ jdk:
 before_install:
 - "$BASE_DIR/deploy/prepare_ci.sh"
 after_success:
-- bash <(curl -s https://codecov.io/bash)
 - "$BASE_DIR/deploy/ci.sh"
+- bash <(curl -s https://codecov.io/bash)
 notifications:
   email: false
 env:

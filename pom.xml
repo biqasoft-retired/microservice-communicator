@@ -6,7 +6,7 @@
 
     <groupId>com.biqasoft</groupId>
     <artifactId>microservice-communicator</artifactId>
-    <version>1.1.6-RELEASE</version>
+    <version>1.1.6-RELEASE+build.</version>
     <packaging>jar</packaging>
 
     <properties>
