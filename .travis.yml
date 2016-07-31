@@ -8,7 +8,6 @@ before_install:
 - "$BASE_DIR/deploy/prepare_ci.sh"
 - "$BASE_DIR/deploy/ci.sh"
 after_success:
-- bash <(curl -s https://codecov.io/bash)
 notifications:
   email: false
 env:
