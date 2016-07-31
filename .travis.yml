@@ -1,0 +1,20 @@
+sudo: required
+services:
+- docker
+language: java
+jdk:
+- oraclejdk8
+before_install:
+- "$BASE_DIR/deploy/prepare_ci.sh"
+- pip install --user codecov
+after_success:
+- codecov
+- "$BASE_DIR/deploy/ci.sh"
+notifications:
+  email: false
+env:
+  global:
+  - BASE_DIR="`pwd`"
+cache:
+  directories:
+  - "$HOME/.m2"
