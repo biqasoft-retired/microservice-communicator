@@ -1,5 +1,7 @@
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
+import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
+import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
 import com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -99,6 +101,46 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Map<String, Object> stringObjectMapperMap = microserviceUsersRepository.returnResponseAsJsonMap();
         Assert.assertNotNull(stringObjectMapperMap);
         Assert.assertEquals( ((LinkedHashMap)stringObjectMapperMap.get("address")).get("state"), "LA");
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnInvalidResponseResponseEntity() throws Exception {
+        ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnInvalidResponse();
+        Assert.assertEquals(userAccountResponseEntity.getStatusCode().value(), 422);
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnInvalidResponseException() throws Exception {
+        try {
+            UserAccount account = microserviceUsersRepository.returnInvalidResponseException();
+        }catch (InvalidRequestException e){
+            Assert.assertNotNull(e.getClientHttpResponse());
+            Assert.assertEquals(e.getClientHttpResponse().getRawStatusCode(), 422);
+            return;
+        }
+        Assert.fail("Not get required exception");
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnInvalidServerErrorResponseException() throws Exception {
+        try {
+            UserAccount account = microserviceUsersRepository.returnInvalidServerException();
+        }catch (InternalSeverErrorProcessingRequestException e){
+            Assert.assertNotNull(e);
+            return;
+        }
+        Assert.fail("Not get required exception");
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnInvalidServerExceptionEntity() throws Exception {
+        try {
+            ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnInvalidServerExceptionEntity();
+        }catch (InternalSeverErrorProcessingRequestException e){
+            Assert.assertNotNull(e);
+            return;
+        }
+        Assert.fail("Not get required exception");
     }
 
     @Test(enabled = true, invocationCount = 1)

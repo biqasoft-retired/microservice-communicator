@@ -5,17 +5,16 @@
 package com.biqasoft.microservice.communicator.http;
 
 import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
+import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -50,6 +49,8 @@ public class MicroserviceRestTemplate extends RestTemplate {
 
     private final static int DEFAULT_TRY_TO_RECONNECT_TIMES = 11;
     private final static int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1000;
+
+    private int invalidRequestStatusCode = 422;
 
     public MicroserviceRestTemplate(String microserviceName, String pathToApiResource ) throws URISyntaxException {
         super(new org.springframework.http.client.HttpComponentsClientHttpRequestFactory());
@@ -144,6 +145,11 @@ public class MicroserviceRestTemplate extends RestTemplate {
                     requestCallback.doWithRequest(request);
                 }
                 response = request.execute();
+
+                if (response != null && response.getStatusCode() != null && response.getStatusCode().value() == invalidRequestStatusCode){
+                    throw new InvalidRequestException(response);
+                }
+
                 handleResponse(url, method, response);
                 if (responseExtractor != null) {
                     return responseExtractor.extractData(response); // success result
@@ -151,7 +157,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
                     return null;
                 }
 
-            } catch (Exception e) {
+            } catch (IOException | HttpServerErrorException e) {
                 try {
                     logger.info("Can not make http request {} {} {} times={}", request.getMethod().toString(), request.getURI().toString(), response.getStatusText(), triedTimes);
                 } catch (Exception e1) {

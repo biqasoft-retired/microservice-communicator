@@ -5,6 +5,7 @@
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
 import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
+import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
 import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.http.HttpClientsHelpers;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
@@ -21,11 +22,12 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.http.*;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -85,7 +87,6 @@ public class MicroserviceInterfaceImpFactory {
 
     /**
      * @param payload           object that will be send in HTTP POST and PUT methods
-     * @param storesUri         http URI
      * @param returnType        java return type in interface. If generic - collection
      * @param httpMethod        HTTP method
      * @param returnGenericType null if return type is not generic
@@ -125,12 +126,36 @@ public class MicroserviceInterfaceImpFactory {
                 });
             }
 
-            // get all responses as byte[] and if we request object - deserialize then
-            ResponseEntity<byte[]> responseEntity = restTemplate.exchange(storesUri, httpMethod, request, byte[].class);
+            ResponseEntity<byte[]> responseEntity = null;
+            try {
+                // get all responses as byte[] and if we request object - deserialize then
+                responseEntity = restTemplate.exchange(storesUri, httpMethod, request, byte[].class);
+            } catch (InvalidRequestException e) {
+
+                if (returnType.equals(ResponseEntity.class)) {
+                    if (e.getClientHttpResponse() != null) {
+                        ClientHttpResponse clientHttpResponse = e.getClientHttpResponse();
+
+                        if (clientHttpResponse.getBody() != null) {
+                            String body = null;
+                            Scanner s = new Scanner(clientHttpResponse.getBody()).useDelimiter("\\A");
+                            body = s.hasNext() ? s.next() : "";
+
+                            if (body == null) {
+                                return ResponseEntity.status(clientHttpResponse.getRawStatusCode()).headers(clientHttpResponse.getHeaders());
+                            } else {
+                                return ResponseEntity.status(clientHttpResponse.getRawStatusCode()).headers(clientHttpResponse.getHeaders()).body(body);
+                            }
+                        }
+                    }
+                }
+                throw e;
+            }
 
             if (microserviceRequestInterceptors != null) {
+                ResponseEntity<byte[]> finalResponseEntity = responseEntity;
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.afterRequest(storesUri, httpMethod, request, responseEntity, returnType, returnGenericType);
+                    x.afterRequest(storesUri, httpMethod, request, finalResponseEntity, returnType, returnGenericType);
                 });
             }
 
@@ -163,7 +188,7 @@ public class MicroserviceInterfaceImpFactory {
                 }
 
                 if (returnType.equals(Map.class) && returnGenericType.length == 2 && returnGenericType[0].equals(String.class) && returnGenericType[1].equals(Object.class)) {
-                    if (params != null && Boolean.TRUE.equals(params.get("convertResponseToMap")) ){
+                    if (params != null && Boolean.TRUE.equals(params.get("convertResponseToMap"))) {
                         JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
                         Map<String, String> map = objectMapper.convertValue(jsonNode, Map.class);
                         return map;
@@ -179,7 +204,7 @@ public class MicroserviceInterfaceImpFactory {
 
             throw new InvalidStateException("Internal error processing. Retry later");
 
-        } catch (Exception e) {
+        } catch (IOException e) {
             logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), storesUri.toString(), e);
             throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");
         }
@@ -267,10 +292,10 @@ public class MicroserviceInterfaceImpFactory {
                     }
 
                     MicroserviceRestTemplate restTemplate = HttpClientsHelpers.getRestTemplate(microserviceCall.tryToReconnect, microserviceCall.tryToReconnectTimes,
-                                                                                   microserviceCall.sleepTimeBetweenTrying, microserviceName, annotatedPath);
+                            microserviceCall.sleepTimeBetweenTrying, microserviceName, annotatedPath);
                     Map<String, Object> param = null;
 
-                    if (convertJsonToMap){
+                    if (convertJsonToMap) {
                         param = new HashMap<>();
                         param.put("convertResponseToMap", true);
                     }

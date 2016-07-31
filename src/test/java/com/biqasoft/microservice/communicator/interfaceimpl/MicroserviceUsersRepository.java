@@ -49,4 +49,17 @@ public interface MicroserviceUsersRepository {
 
     @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET, convertResponseToMap = true)
     Map<String, Object> returnResponseAsJsonMap();
+
+    @MicroserviceMapping(path = "/domain/users/mock/send_invalid_request", method = HttpMethod.GET)
+    ResponseEntity<UserAccount> returnInvalidResponse();
+
+    @MicroserviceMapping(path = "/domain/users/mock/send_invalid_request", method = HttpMethod.GET)
+    UserAccount returnInvalidResponseException();
+
+    @MicroserviceMapping(path = "/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request", method = HttpMethod.GET)
+    UserAccount returnInvalidServerException();
+
+    @MicroserviceMapping(path = "/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request", method = HttpMethod.GET)
+    ResponseEntity<UserAccount> returnInvalidServerExceptionEntity();
+
 }
