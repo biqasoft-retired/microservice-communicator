@@ -6,8 +6,9 @@ jdk:
 - oraclejdk8
 before_install:
 - "$BASE_DIR/deploy/prepare_ci.sh"
-- "$BASE_DIR/deploy/ci.sh"
 after_success:
+install:
+- "$BASE_DIR/deploy/ci.sh"
 notifications:
   email: false
 env:
