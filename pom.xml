@@ -19,7 +19,6 @@
         <maven-compiler-plugin.version>3.5</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
-        <org.aspectj.aspectjrt.version>1.8.9</org.aspectj.aspectjrt.version>
         <gpg.use>true</gpg.use>
 
         <!--testing -->
