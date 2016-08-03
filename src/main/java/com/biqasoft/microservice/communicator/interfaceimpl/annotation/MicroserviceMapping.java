@@ -40,13 +40,13 @@ public @interface MicroserviceMapping {
      *
      * @return number of tries to reconnect
      */
-    int tryToReconnectTimes() default 10;
+    int tryToReconnectTimes() default 3;
 
     /**
      * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String)}
      * @return millisecond between trying
      */
-    int sleepTimeBetweenTrying() default 1000;
+    int sleepTimeBetweenTrying() default 1100;
 
     boolean convertResponseToMap() default false;
     boolean mergePayloadToObject() default false;

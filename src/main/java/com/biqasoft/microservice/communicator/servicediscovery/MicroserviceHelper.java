@@ -26,8 +26,8 @@ public class MicroserviceHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceHelper.class);
 
-    private final int FAIL_AFTER_UNSUCCESS_TIMES = 11;
-    private final int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1000;
+    private final int FAIL_AFTER_UNSUCCESS_TIMES = 4;
+    private final int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1200;
 
     public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource) {
         return getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, DEFAULT_SLEEP_TIME_BETWEEN_TRYING, true);
