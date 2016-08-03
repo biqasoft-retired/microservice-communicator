@@ -46,7 +46,7 @@ public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRe
                 definition.setBeanClass(beanSignature.getClass());
 
                 beanDefinitionRegistry.registerBeanDefinition(beanName, definition);
-                logger.info("Find microservice interface {}", interfaceClassName);
+                logger.debug("Find microservice interface {}", interfaceClassName);
             } catch (Exception e) {
                 logger.error("Error init dynamic microservice {}", interfaceClassName, e);
             }
