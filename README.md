@@ -128,10 +128,10 @@ To use this extension on Maven-based projects, use following dependency:
 ```
  
 ## Return type from interface can be:
- - CompletableFuture - async execute request
- - Data object (DTO), will be deserialize with Jackson; supported return `List<SomeClass>`
- - ResponseEntity - spring MVC object, with headers, response code, response body
- - JsonNode - if you do not want to map response to some object
+ - [CompletableFuture<>](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) - async execute request
+ - Any your Data object (DTO), will be deserialize with Jackson; supported return `List<SomeClass>`
+ - [ResponseEntity<>](http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/http/ResponseEntity.html) - spring MVC object, with headers, response code, response body
+ - [JsonNode](https://fasterxml.github.io/jackson-databind/javadoc/2.2.0/com/fasterxml/jackson/databind/JsonNode.html) - if you do not want to map response to some object
  
 ## How it works
 
