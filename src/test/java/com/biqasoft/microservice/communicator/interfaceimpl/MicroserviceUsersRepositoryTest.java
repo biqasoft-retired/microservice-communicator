@@ -200,15 +200,17 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test(enabled = true, invocationCount = 1)
-    public void testEcho() throws Exception {
+    public void testCreateJsonFromParam() throws Exception {
         String username = "Nikita";
         String password = "super_secret_password";
         String country = "LAAAAA";
-        UserAccount account = microserviceUsersRepository.returnAuthenticatedUserComplexEcho(username, password, country);
+        String city = "BOO";
+        UserAccount account = microserviceUsersRepository.returnAuthenticatedUserComplexEcho(username, password, country, city);
 
         Assert.assertEquals(account.getUsername(), username);
         Assert.assertEquals(account.getPassword(), password);
         Assert.assertEquals(account.getAddress().getCountry(), country);
+        Assert.assertEquals(account.getAddress().getCity(), city);
     }
 
     @Test(enabled = true, invocationCount = 1)

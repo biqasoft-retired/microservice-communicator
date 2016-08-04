@@ -24,22 +24,22 @@ Auto generate HTTP REST classes for interfaces.
  - Create interface, for example
  
 ```java
-@MicroserviceRequest(microservice = "users")
-public interface MicroserviceUsersRepositoryTest {
+@MicroserviceRequest(microservice = "test-microservice") // test-microservice is id in service discovery
+public interface MicroserviceUsersRepository {
 
-    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)// HTTP GET - default, you can leave it
     UserAccount returnSingleObject();
 
-    @MicroserviceMapping(path = "/domain/users/mock/null", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/null")
     UserAccount returnNullBodyResponse();
 
-    @MicroserviceMapping(path = "/domain/users/mock/null", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/null")
     ResponseEntity<UserAccount> returnNonNullBodyResponse();
 
-    @MicroserviceMapping(path = "/domain/users/mock", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock")
     List<UserAccount> returnGenericList();
 
-    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/one")
     ResponseEntity<UserAccount> returnGenericResponseEntity();
 
     // russian special language
@@ -48,44 +48,55 @@ public interface MicroserviceUsersRepositoryTest {
     List<UserAccount> построитьПолучитьМестоDomainГдеUsersГдеMock();
 
     // in tests url will be /domain/users/mock/one
-    @MicroserviceMapping(path = "/domain/{s1}/{s2}/one", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/{s1}/{s2}/one")
     UserAccount returnSingleObjectWithPathParam(@MicroservicePathVariable(param = "s1") String s,
                                                 @MicroservicePathVariable(param = "s2") String s2);
 
-    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/one")
     JsonNode returnJson();
 
-    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET, convertResponseToMap = true)
+    @MicroserviceMapping(path = "/domain/users/mock/one", convertResponseToMap = true)
     Map<String, Object> returnResponseAsJsonMap();
 
-    @MicroserviceMapping(path = "/domain/users/mock/send_invalid_request", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/send_invalid_request")
     ResponseEntity<UserAccount> returnInvalidResponse();
 
-    @MicroserviceMapping(path = "/domain/users/mock/send_invalid_request", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/send_invalid_request")
     UserAccount returnInvalidResponseException();
 
-    @MicroserviceMapping(path = "/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request", method = HttpMethod.GET)
+    // will be 3 attempts (by default) to try again with interval (default 1100ms)
+    @MicroserviceMapping(path = "/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request")
     UserAccount returnInvalidServerException();
 
-    @MicroserviceMapping(path = "/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request")
     ResponseEntity<UserAccount> returnInvalidServerExceptionEntity();
 
     @MicroserviceMapping(path = "/domain/users/mock/authenticate", method = HttpMethod.POST, mergePayloadToObject = true)
-    UserAccount returnAuthenticatedUser(@MicroservicePayloadVariable(path = "username") String username, @MicroservicePayloadVariable(path = "password") String password);
+    UserAccount returnAuthenticatedUser(@MicroservicePayloadVariable(path = "username") String username,
+                                        @MicroservicePayloadVariable(path = "password") String password);
 
-    // will be POST json {"username": %username%, "password": %password%, address : { "country": %addressCountry% } }
+    // will be POST json
+    // {
+    //    "username": %username%,
+    //    "password": %password%,
+    //    "address" : {
+    //                   "country": %addressCountry%,
+    //                   "city": %city%
+    //                }
+    // }
     // %username% etc... will be replaced by java function param
     @MicroserviceMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST, mergePayloadToObject = true)
     UserAccount returnAuthenticatedUserComplexEcho(@MicroservicePayloadVariable(path = "username") String username,
                                                    @MicroservicePayloadVariable(path = "password") String password,
-                                                   @MicroservicePayloadVariable(path = "address.country") String addressCountry);
+                                                   @MicroservicePayloadVariable(path = "address.country") String addressCountry,
+                                                   @MicroservicePayloadVariable(path = "address.city") String city);
 
-    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock/one")
     CompletableFuture<UserAccount> returnCompletableFutureSingleObject();
 
-    @MicroserviceMapping(path = "/domain/users/mock", method = HttpMethod.GET)
+    @MicroserviceMapping(path = "/domain/users/mock")
     CompletableFuture<List<UserAccount>> returnListCompletableFutureObjects();
-
+    
 }
 ```
 
@@ -115,6 +126,12 @@ To use this extension on Maven-based projects, use following dependency:
   <version>1.2.10-RELEASE</version>
 </dependency>
 ```
+ 
+## Return type from interface can be:
+ - CompletableFuture - async execute request
+ - Data object (DTO), will be deserialize with Jackson; supported return `List<SomeClass>`
+ - ResponseEntity - spring MVC object, with headers, response code, response body
+ - JsonNode - if you do not want to map response to some object
  
 ## How it works
 
