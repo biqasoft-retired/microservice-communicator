@@ -68,7 +68,7 @@ public interface MicroserviceUsersRepository {
     @MicroserviceMapping(path = "/domain/users/mock/authenticate", method = HttpMethod.POST, mergePayloadToObject = true)
     UserAccount returnAuthenticatedUser(@MicroservicePayloadVariable(path = "username") String username, @MicroservicePayloadVariable(path = "password") String password);
 
-    // will be POST json {"username": %username%, "username": "password": %password%, address : { "country": %addressCountry% } }
+    // will be POST json {"username": %username%, "password": %password%, address : { "country": %addressCountry% } }
     // %username% etc... will be replaced by java function param
     @MicroserviceMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST, mergePayloadToObject = true)
     UserAccount returnAuthenticatedUserComplexEcho(@MicroservicePayloadVariable(path = "username") String username,
