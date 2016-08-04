@@ -120,7 +120,7 @@ To use this extension on Maven-based projects, use following dependency:
 
 Internally, library use spring bean `LoadBalancerClient` with default implementation of spring cloud `RibbonLoadBalancerClient`. So, you can use Consul, Zookeeper, Cloudfoundry.
  
-if you have not configured, you can do it easily, for example for consul create configuration bean 
+if you have not configured service discovery in Spring Cloud, you can do it easily, for example for consul create configuration bean 
 
 ```java
 @EnableDiscoveryClient
@@ -130,9 +130,8 @@ public class ServiceDiscoveryConfiguration {
     @Value("${spring.cloud.consul.host}")
     private String serverUrl;
 
-    public
     @Bean
-    ConsulClient consulClient() throws Exception {
+    public ConsulClient consulClient() throws Exception {
         ConsulClient client = new ConsulClient( serverUrl );
         return client;
     }
@@ -156,4 +155,4 @@ When we recieve such response, we immedialty throw exception, without trying new
 or can not retry request to microservices predetermined number of times(on error)
 
 ### License
-Copyright © 2016 Nikita Bakaev. Licensed under the Apache License.
+Copyright © 2016 [Nikita Bakaev](http://nbakaev.ru). Licensed under the Apache License.
