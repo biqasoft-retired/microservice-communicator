@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -73,5 +74,11 @@ public interface MicroserviceUsersRepository {
     UserAccount returnAuthenticatedUserComplexEcho(@MicroservicePayloadVariable(path = "username") String username,
                                                    @MicroservicePayloadVariable(path = "password") String password,
                                                    @MicroservicePayloadVariable(path = "address.country") String addressCountry);
+
+    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+    CompletableFuture<UserAccount> returnCompletableFutureSingleObject();
+
+    @MicroserviceMapping(path = "/domain/users/mock", method = HttpMethod.GET)
+    CompletableFuture<List<UserAccount>> returnListCompletableFutureObjects();
 
 }

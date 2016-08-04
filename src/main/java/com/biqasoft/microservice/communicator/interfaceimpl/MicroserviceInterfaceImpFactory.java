@@ -38,6 +38,7 @@ import java.lang.reflect.Parameter;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -62,7 +63,7 @@ public class MicroserviceInterfaceImpFactory {
         }
     };
 
-    private static boolean returnNullOnEmptyResponseBody = true;
+    private static boolean RETURN_NULL_ON_EMPTY_RESPONSE_BODY = true;
 
     // static field for ResponseEntity<>
     static Field body = null;
@@ -168,8 +169,20 @@ public class MicroserviceInterfaceImpFactory {
                 return Void.TYPE;
             }
 
-            if (!responseEntity.hasBody() && returnNullOnEmptyResponseBody && !returnType.equals(ResponseEntity.class)) {
+            if (!responseEntity.hasBody() && RETURN_NULL_ON_EMPTY_RESPONSE_BODY && !returnType.equals(ResponseEntity.class)) {
                 return null;
+            }
+
+            if (returnType.equals(CompletableFuture.class)){
+                if (returnGenericType.length == 0){
+                    return Void.TYPE;
+                }
+
+                if (Collection.class.isAssignableFrom(returnGenericType[0])) {
+                    JavaType type = objectMapper.getTypeFactory().constructCollectionType(returnGenericType[0], returnGenericType[1]);
+                    return objectMapper.readValue(responseEntity.getBody(), type);
+                }
+                return objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]);
             }
 
             // if we request byte[] return immediately
@@ -223,7 +236,7 @@ public class MicroserviceInterfaceImpFactory {
 
             Annotation declaredAnnotation = interfaceToExtend.getDeclaredAnnotation(MicroserviceRequest.class);
             if (declaredAnnotation == null) {
-                throw new InvalidStateException(interfaceToExtend.toString() + "  must be annotated with " + MicroserviceRequest.class.toString() + " annotation");
+                throw new InvalidStateException(interfaceToExtend.toString() + " must be annotated with " + MicroserviceRequest.class.toString() + " annotation");
             }
 
             List<Class<?>> extendInterfaces = new ArrayList<>();
@@ -307,9 +320,9 @@ public class MicroserviceInterfaceImpFactory {
                             ObjectNode latestNode = rootNode;
                             if (jsonName.contains(".")) {
                                 String[] split = jsonName.split("\\.");
-                                int i =0;
+                                int i = 0;
                                 for (String s : split) {
-                                    if ( (i+1) == split.length){
+                                    if ((i + 1) == split.length) {
                                         break;
                                     }
 
@@ -340,7 +353,7 @@ public class MicroserviceInterfaceImpFactory {
                             }
                         } else {
                             // zero params
-                            throw new InvalidStateException("You must pass EXACTLY ONE payload to POST or PUT method");
+                            throw new InvalidStateException("You must pass EXACTLY ONE payload to POST or PUT method, have 0");
                         }
                         payload = objects[0];
                     }
@@ -354,10 +367,17 @@ public class MicroserviceInterfaceImpFactory {
                         param.put("convertResponseToMap", true);
                     }
 
-                    Object result = makeRequestToMicroservice(payload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
+                    if (microserviceReturnType.equals(CompletableFuture.class)) {
+                        Map<String, Object> finalParam = param;
+                        Object finalPayload = payload;
+                        return CompletableFuture
+                                .supplyAsync(() -> makeRequestToMicroservice(finalPayload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, finalParam));
+                    } else {
+                        Object result = makeRequestToMicroservice(payload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
+                        logger.debug("End microservice method {} in {}", method.getName(), o.toString());
+                        return result;
+                    }
 
-                    logger.debug("End microservice method {} in {}", method.getName(), o.toString());
-                    return result;
                 }
             });
             return extendedInterface;
@@ -398,11 +418,11 @@ public class MicroserviceInterfaceImpFactory {
     }
 
     public static boolean isReturnNullOnEmptyResponseBody() {
-        return returnNullOnEmptyResponseBody;
+        return RETURN_NULL_ON_EMPTY_RESPONSE_BODY;
     }
 
     public static void setReturnNullOnEmptyResponseBody(boolean returnNullOnEmptyResponseBody) {
-        MicroserviceInterfaceImpFactory.returnNullOnEmptyResponseBody = returnNullOnEmptyResponseBody;
+        MicroserviceInterfaceImpFactory.RETURN_NULL_ON_EMPTY_RESPONSE_BODY = returnNullOnEmptyResponseBody;
     }
 
     public static ObjectMapper getObjectMapper() {

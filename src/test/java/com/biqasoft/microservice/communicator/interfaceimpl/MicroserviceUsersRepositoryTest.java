@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -51,6 +52,62 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         UserAccount account = microserviceUsersRepository.returnSingleObjectWithPathParam("users", "mock");
         Assert.assertNotNull(account);
         Assert.assertNotNull(account.getId());
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnCompletableFutureSingleObject() throws Exception {
+        final boolean[] asyncExecutionDetect = {false, false}; // [0] -> completeFuture, [1] -> execute statement after future request(async)
+
+        CompletableFuture<UserAccount> completableFuture = microserviceUsersRepository.returnCompletableFutureSingleObject();
+        completableFuture.thenAccept(x -> {
+            asyncExecutionDetect[0] = true;
+        });
+
+        asyncExecutionDetect[1] = true; // execute some code after submitting future
+        Assert.assertFalse(completableFuture.isDone());
+
+        UserAccount userAccount = completableFuture.get();
+        Assert.assertEquals(completableFuture.isDone(), true);
+
+        Assert.assertTrue(asyncExecutionDetect[0]);
+        Assert.assertTrue(asyncExecutionDetect[1]);
+
+        Assert.assertNotNull(userAccount);
+        Assert.assertNotNull(userAccount.getId());
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnListCompletableFutureSingleObject() throws Exception {
+        final boolean[] asyncExecutionDetect = {false, false}; // [0] -> completeFuture, [1] -> execute statement after future request(async)
+
+        CompletableFuture<List<UserAccount>> completableFuture = microserviceUsersRepository.returnListCompletableFutureObjects();
+        completableFuture.thenAccept(x -> {
+            asyncExecutionDetect[0] = true;
+        });
+
+        asyncExecutionDetect[1] = true; // execute some code after submitting future
+        Assert.assertFalse(completableFuture.isDone());
+
+        List<UserAccount> userAccounts = completableFuture.get();
+        Assert.assertEquals(completableFuture.isDone(), true);
+
+        int processedTimes = 0;
+        if (!asyncExecutionDetect[0]) {
+            while (processedTimes < 5) {
+                logger.warn("Waiting execute accept on CompletableFuture times " + processedTimes);
+                if (asyncExecutionDetect[0]){
+                    break;
+                }
+                Thread.sleep(1500);
+                processedTimes++;
+            }
+        }
+
+        Assert.assertTrue(asyncExecutionDetect[0]);
+        Assert.assertTrue(asyncExecutionDetect[1]);
+
+        Assert.assertNotNull(userAccounts);
+        Assert.assertTrue(userAccounts.size() > 0);
     }
 
     @Test(enabled = true, invocationCount = 1)
@@ -100,7 +157,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     public void testReturnJsonAsMap() throws Exception {
         Map<String, Object> stringObjectMapperMap = microserviceUsersRepository.returnResponseAsJsonMap();
         Assert.assertNotNull(stringObjectMapperMap);
-        Assert.assertEquals( ((LinkedHashMap)stringObjectMapperMap.get("address")).get("state"), "LA");
+        Assert.assertEquals(((LinkedHashMap) stringObjectMapperMap.get("address")).get("state"), "LA");
     }
 
     @Test(enabled = true, invocationCount = 1)
@@ -113,7 +170,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     public void testReturnInvalidResponseException() throws Exception {
         try {
             UserAccount account = microserviceUsersRepository.returnInvalidResponseException();
-        }catch (InvalidRequestException e){
+        } catch (InvalidRequestException e) {
             Assert.assertNotNull(e.getClientHttpResponse());
             Assert.assertEquals(e.getClientHttpResponse().getRawStatusCode(), 422);
             return;
@@ -125,7 +182,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     public void testReturnInvalidServerErrorResponseException() throws Exception {
         try {
             UserAccount account = microserviceUsersRepository.returnInvalidServerException();
-        }catch (InternalSeverErrorProcessingRequestException e){
+        } catch (InternalSeverErrorProcessingRequestException e) {
             Assert.assertNotNull(e);
             return;
         }
@@ -158,7 +215,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     public void testReturnInvalidServerExceptionEntity() throws Exception {
         try {
             ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnInvalidServerExceptionEntity();
-        }catch (InternalSeverErrorProcessingRequestException e){
+        } catch (InternalSeverErrorProcessingRequestException e) {
             Assert.assertNotNull(e);
             return;
         }

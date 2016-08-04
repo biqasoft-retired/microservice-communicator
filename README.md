@@ -80,6 +80,12 @@ public interface MicroserviceUsersRepositoryTest {
                                                    @MicroservicePayloadVariable(path = "password") String password,
                                                    @MicroservicePayloadVariable(path = "address.country") String addressCountry);
 
+    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+    CompletableFuture<UserAccount> returnCompletableFutureSingleObject();
+
+    @MicroserviceMapping(path = "/domain/users/mock", method = HttpMethod.GET)
+    CompletableFuture<List<UserAccount>> returnListCompletableFutureObjects();
+
 }
 ```
 
@@ -106,7 +112,7 @@ To use this extension on Maven-based projects, use following dependency:
 <dependency>
   <groupId>com.biqasoft</groupId>
   <artifactId>microservice-communicator</artifactId>
-  <version>1.1.9-RELEASE</version>
+  <version>1.2.10-RELEASE</version>
 </dependency>
 ```
  
@@ -135,8 +141,8 @@ public class ServiceDiscoveryConfiguration {
 ```
 
 ## Demo
- - [microservice-communicator-demo-server](https://github.com/biqasoft/microservice-communicator-demo-server)
- - `MicroserviceUsersRepositoryTest` for interface usage
+ - [demo server, used for tests](https://github.com/biqasoft/microservice-communicator-demo-server)
+ - `MicroserviceUsersRepositoryTest` test for interface usage
 
 ## Exceptions
 If you have return type `ResponseEntity` you will never have exceptions from method. For example with `responseEntity.getStatusCode().is2xxSuccessful()`.

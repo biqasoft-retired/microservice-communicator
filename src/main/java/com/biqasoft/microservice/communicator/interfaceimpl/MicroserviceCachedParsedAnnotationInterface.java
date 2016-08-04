@@ -14,6 +14,8 @@ import org.springframework.core.annotation.AnnotationUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -76,11 +78,27 @@ public class MicroserviceCachedParsedAnnotationInterface {
 
                     Method allGenericsMethod = returnType.getClass().getDeclaredMethod("getTypeBindings");
                     allGenericsMethod.setAccessible(true);
-
-                    TypeBindings getTypeBindings = (TypeBindings) allGenericsMethod.invoke(returnType);
+                    TypeBindings typeBindings = (TypeBindings) allGenericsMethod.invoke(returnType);
 
                     for (int i = 0; i < genericsParamNumber; i++) {
-                        returnGenericType[i] = Class.forName(getTypeBindings.getBoundType(i).getTypeName());
+                        Type boundType = typeBindings.getBoundType(i);
+
+                        if (boundType.isGenericType()) {
+                            // looks like this is generic in generic like this expression
+                            // java.util.concurrent.CompletableFuture<java.util.List<com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount>>
+                            if (boundType.getErasedClass().equals(List.class)) {
+                                returnGenericType[i] = boundType.getErasedClass();
+                                ///////////////////
+                                Method allGenericsMethod2 = boundType.getClass().getDeclaredMethod("getTypeBindings");
+                                allGenericsMethod2.setAccessible(true);
+                                TypeBindings typeBindings2 = (TypeBindings) allGenericsMethod2.invoke(boundType);
+
+                                returnGenericType = Arrays.copyOf(returnGenericType, returnGenericType.length + 1);
+                                returnGenericType[i + 1] = Class.forName(typeBindings2.getBoundType(0).getFullName());
+                            }
+                        } else {
+                            returnGenericType[i] = Class.forName(boundType.getTypeName());
+                        }
                     }
                 }
             } catch (Exception e) {
