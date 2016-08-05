@@ -93,7 +93,6 @@ public interface MicroserviceUsersRepository {
     @MicroserviceMapping(path = "/domain/users/mock")
     CompletableFuture<List<UserAccount>> returnListCompletableFutureObjects();
 
-
     @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)// HTTP GET - default, you can leave it
     Optional<UserAccount> returnSingleOptionalObject();
 

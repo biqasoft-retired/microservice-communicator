@@ -18,6 +18,7 @@ Auto generate HTTP REST classes for interfaces.
 
 
 ## Requirements
+ - Java 8
  - Spring 4
  - [Spring Cloud](http://projects.spring.io/spring-cloud/)
 
@@ -98,6 +99,9 @@ public interface MicroserviceUsersRepository {
 
     @MicroserviceMapping(path = "/domain/users/mock")
     CompletableFuture<List<UserAccount>> returnListCompletableFutureObjects();
+    
+    @MicroserviceMapping(path = "/domain/users/mock/null")
+    Optional<UserAccount> returnSingleOptionalEmptyObject();
     
 }
 ```
