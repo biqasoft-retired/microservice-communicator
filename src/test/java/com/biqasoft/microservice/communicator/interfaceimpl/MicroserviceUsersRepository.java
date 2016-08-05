@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -91,5 +92,15 @@ public interface MicroserviceUsersRepository {
 
     @MicroserviceMapping(path = "/domain/users/mock")
     CompletableFuture<List<UserAccount>> returnListCompletableFutureObjects();
+
+
+    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)// HTTP GET - default, you can leave it
+    Optional<UserAccount> returnSingleOptionalObject();
+
+    @MicroserviceMapping(path = "/domain/users/mock")
+    Optional<List<UserAccount>> returnListOptionalObject();
+
+    @MicroserviceMapping(path = "/domain/users/mock/null")
+    Optional<UserAccount> returnSingleOptionalEmptyObject();
 
 }

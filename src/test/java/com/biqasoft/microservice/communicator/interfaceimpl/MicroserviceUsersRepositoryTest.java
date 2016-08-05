@@ -18,9 +18,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -52,6 +50,35 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         UserAccount account = microserviceUsersRepository.returnSingleObjectWithPathParam("users", "mock");
         Assert.assertNotNull(account);
         Assert.assertNotNull(account.getId());
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnSingleOptionalObject() throws Exception {
+        Optional<UserAccount> userAccount = microserviceUsersRepository.returnSingleOptionalObject();
+        Assert.assertNotNull(userAccount);
+        Assert.assertTrue(userAccount.isPresent() );
+        Assert.assertNotNull(userAccount.get());
+        Assert.assertNotNull(userAccount.get().getId());
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnListOptionalObject() throws Exception {
+        Optional<List<UserAccount>> userAccounts = microserviceUsersRepository.returnListOptionalObject();
+
+        Assert.assertNotNull(userAccounts);
+        Assert.assertTrue(userAccounts.isPresent() );
+        Assert.assertNotNull(userAccounts.get());
+        Assert.assertTrue(userAccounts.get().size() > 0);
+        Assert.assertNotNull(userAccounts.get().get(0).getId());
+    }
+
+    @Test(enabled = true, invocationCount = 1, expectedExceptions = NoSuchElementException.class)
+    public void testReturnSingleOptionalEmptyObject() throws Exception {
+        Optional<UserAccount> userAccount = microserviceUsersRepository.returnSingleOptionalEmptyObject();
+
+        Assert.assertNotNull(userAccount);
+        Assert.assertFalse(userAccount.isPresent() );
+        userAccount.get();
     }
 
     @Test(enabled = true, invocationCount = 1)

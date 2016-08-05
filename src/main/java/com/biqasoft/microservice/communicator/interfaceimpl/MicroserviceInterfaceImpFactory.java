@@ -169,12 +169,29 @@ public class MicroserviceInterfaceImpFactory {
                 return Void.TYPE;
             }
 
+            if (returnType.equals(Optional.class)) {
+                if (!responseEntity.hasBody()) {
+                    return Optional.empty();
+                }
+
+                Object object;
+
+                if (Collection.class.isAssignableFrom(returnGenericType[0])) {
+                    JavaType type = objectMapper.getTypeFactory().constructCollectionType(returnGenericType[0], returnGenericType[1]);
+                    object = objectMapper.readValue(responseEntity.getBody(), type);
+                }else {
+                    object = objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]);
+                }
+
+                return Optional.of(object);
+            }
+
             if (!responseEntity.hasBody() && RETURN_NULL_ON_EMPTY_RESPONSE_BODY && !returnType.equals(ResponseEntity.class)) {
                 return null;
             }
 
-            if (returnType.equals(CompletableFuture.class)){
-                if (returnGenericType.length == 0){
+            if (returnType.equals(CompletableFuture.class)) {
+                if (returnGenericType.length == 0) {
                     return Void.TYPE;
                 }
 
