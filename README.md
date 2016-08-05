@@ -3,10 +3,12 @@
 Auto generate HTTP REST classes for interfaces.
 
 ## Status
-[![Travis Widget]][Travis] [![Maven Central Widget]][Maven Central]  [![Download Bintray Widget]][Download Bintray] [![Javadoc Widget]][Javadoc]
+[![Travis Widget]][Travis] [![Coverage Status Widget]][Coverage Status] [![Maven Central Widget]][Maven Central]  [![Download Bintray Widget]][Download Bintray] [![Javadoc Widget]][Javadoc]
 
 [Travis]: https://travis-ci.org/biqasoft/microservice-communicator
 [Travis Widget]: https://travis-ci.org/biqasoft/microservice-communicator.svg?branch=master
+[Coverage Status]: https://codecov.io/github/biqasoft/microservice-communicator?branch=master
+[Coverage Status Widget]: https://img.shields.io/codecov/c/github/biqasoft/microservice-communicator/master.svg
 [Maven Central]: https://mvnrepository.com/artifact/com.biqasoft/microservice-communicator
 [Maven Central Widget]: https://img.shields.io/maven-central/v/com.biqasoft/microservice-communicator.svg
 [Download Bintray]: https://bintray.com/biqasoft/maven/microservice-communicator/_latestVersion
