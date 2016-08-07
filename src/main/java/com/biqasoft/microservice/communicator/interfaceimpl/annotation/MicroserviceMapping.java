@@ -4,6 +4,7 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl.annotation;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,11 @@ import java.lang.annotation.*;
 @Inherited
 public @interface MicroserviceMapping {
 
+    @AliasFor("path")
+    String value() default "/";
+
+
+    @AliasFor("value")
     String path() default "/";
 
     HttpMethod method() default HttpMethod.GET;

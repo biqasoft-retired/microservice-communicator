@@ -55,14 +55,14 @@ public class MicroserviceCachedParsedAnnotationInterface {
         MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall = new MicroserviceInterfaceImpFactory.CachedMicroserviceCall();
         MicroserviceInterfaceImpFactory.SpecialLanguage specialLanguage = SpecialLanguageNotation.isProcessSpecialLanguageNotation(method);
 
-        MicroserviceMapping microserviceMapping = method.getDeclaredAnnotation(MicroserviceMapping.class);
+        MicroserviceMapping microserviceMapping = AnnotationUtils.findAnnotation(method, MicroserviceMapping.class);
         Class[] returnGenericType = null;
         Class<?> microserviceReturnType = null;
         String microserviceName = null;
 
         try {
             Class aClass = Class.forName(MicroserviceBPP.isMicroserviceAnnotation(o).getTypeName());
-            Annotation declaredAnnotation = aClass.getDeclaredAnnotation(MicroserviceRequest.class);
+            Annotation declaredAnnotation = AnnotationUtils.findAnnotation(aClass, MicroserviceRequest.class);
             microserviceName = (String) AnnotationUtils.getValue(declaredAnnotation, "microservice");
 
             microserviceReturnType = method.getReturnType();

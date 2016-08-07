@@ -4,6 +4,7 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl.annotation;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.*;
@@ -21,6 +22,10 @@ import java.lang.annotation.*;
 @Inherited
 public @interface MicroserviceRequest {
 
+    @AliasFor("microservice")
+    String value() default "";
+
+    @AliasFor("value")
     String microservice() default "";
 
 }

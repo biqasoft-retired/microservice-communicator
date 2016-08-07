@@ -4,6 +4,7 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl.annotation;
 
+import org.springframework.core.annotation.AliasFor;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.*;
@@ -21,6 +22,10 @@ import java.lang.annotation.*;
 @Target({ElementType.PARAMETER})
 public @interface MicroservicePathVariable {
 
+    @AliasFor("param")
+    String value() default "";
+
+    @AliasFor("value")
     String param() default "";
 
 }

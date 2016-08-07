@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
@@ -296,7 +297,7 @@ public class MicroserviceInterfaceImpFactory {
                         field.setAccessible(true);
                         Integer field1 = (Integer) ReflectionUtils.getField(field, parameter);
 
-                        MicroservicePathVariable param = parameter.getDeclaredAnnotation((MicroservicePathVariable.class));
+                        MicroservicePathVariable param = AnnotationUtils.findAnnotation(parameter, MicroservicePathVariable.class);
                         if (param == null || StringUtils.isEmpty(param.param())) {
                             continue;
                         }
@@ -321,7 +322,7 @@ public class MicroserviceInterfaceImpFactory {
                             Field field = parameter.getClass().getDeclaredField("index");
                             field.setAccessible(true);
 
-                            MicroservicePayloadVariable param = parameter.getDeclaredAnnotation((MicroservicePayloadVariable.class));
+                            MicroservicePayloadVariable param = AnnotationUtils.findAnnotation(parameter, MicroservicePayloadVariable.class);
                             if (param == null) {
                                 continue;
                             }
