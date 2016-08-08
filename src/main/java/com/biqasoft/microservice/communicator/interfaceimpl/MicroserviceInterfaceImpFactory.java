@@ -36,7 +36,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.net.URI;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -99,7 +98,6 @@ public class MicroserviceInterfaceImpFactory {
      */
     private static Object makeRequestToMicroservice(Object payload, Class returnType, HttpMethod httpMethod,
                                                     MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
-        URI storesUri = restTemplate.getUrl();
         try {
             HttpHeaders httpHeaders = new HttpHeaders();
 
@@ -114,7 +112,7 @@ public class MicroserviceInterfaceImpFactory {
 
             if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.beforeCreateHttpEntity(storesUri, httpMethod, returnType, returnGenericType, httpHeaders);
+                    x.beforeCreateHttpEntity(restTemplate.getMicroserviceName(), restTemplate.getPathToApiResource(), httpMethod, returnType, returnGenericType, httpHeaders);
                 });
             }
 
@@ -127,14 +125,14 @@ public class MicroserviceInterfaceImpFactory {
 
             if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.beforeRequest(storesUri, httpMethod, request, returnType, returnGenericType);
+                    x.beforeRequest(restTemplate.getMicroserviceName(), restTemplate.getPathToApiResource(), httpMethod, request, returnType, returnGenericType);
                 });
             }
 
             ResponseEntity<byte[]> responseEntity;
             try {
                 // get all responses as byte[] and if we request object - deserialize then
-                responseEntity = restTemplate.exchange(storesUri, httpMethod, request, byte[].class);
+                responseEntity = restTemplate.exchange(null, httpMethod, request, byte[].class);
             } catch (InvalidRequestException e) {
 
                 if (returnType.equals(ResponseEntity.class)) {
@@ -159,11 +157,11 @@ public class MicroserviceInterfaceImpFactory {
 
             if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.afterRequest(storesUri, httpMethod, request, responseEntity, returnType, returnGenericType);
+                    x.afterRequest(restTemplate.getMicroserviceName(), restTemplate.getPathToApiResource(), httpMethod, request, responseEntity, returnType, returnGenericType);
                 });
             }
 
-            logger.debug("Request to microservice {}", storesUri.toString());
+            logger.debug("Request to microservice {}", restTemplate.getLastURI().toString());
 
             // if we have void in interface as return - return void
             if (returnType.equals(Void.TYPE)) {
@@ -238,7 +236,7 @@ public class MicroserviceInterfaceImpFactory {
             throw new InvalidStateException("Internal error processing. Retry later"); // invalid @annotation
 
         } catch (IOException e) {
-            logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), storesUri.toString(), e);
+            logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), restTemplate.getLastURI().toString(), e);
             throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");
         }
     }

@@ -17,7 +17,6 @@ import org.springframework.util.ReflectionUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -261,7 +260,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
 
         MicroserviceRequestInterceptor microserviceRequestInterceptor = new MicroserviceRequestInterceptor() {
             @Override
-            public void afterRequest(URI storesUri, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType) {
+            public void afterRequest(String microserviceName, String microservicePath, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType) {
                 ReflectionUtils.setField(MicroserviceInterfaceImpFactory.body, responseEntity, bytes);
             }
         };

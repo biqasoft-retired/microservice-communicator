@@ -12,11 +12,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.Assert;
-import org.springframework.web.client.*;
+import org.springframework.web.client.RequestCallback;
+import org.springframework.web.client.ResponseExtractor;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This is template which retry request on error
@@ -29,7 +34,8 @@ import java.net.URISyntaxException;
  */
 public class MicroserviceRestTemplate extends RestTemplate {
 
-    private URI url;
+    private URI lastURI = null;
+
     private HttpMethod method;
     private RequestCallback requestCallback;
     private ClientHttpRequest clientHttpRequest;
@@ -49,37 +55,47 @@ public class MicroserviceRestTemplate extends RestTemplate {
 
     private final static int DEFAULT_TRY_TO_RECONNECT_TIMES = 11;
     private final static int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1000;
+    private Set<Integer> invalidRequestStatusCode;
 
-    private int invalidRequestStatusCode = 422;
+    private static ResponseErrorHandler responseErrorHandler = new ResponseErrorHandler();
 
-    public MicroserviceRestTemplate(String microserviceName, String pathToApiResource ) throws URISyntaxException {
+    public MicroserviceRestTemplate(String microserviceName, String pathToApiResource) throws URISyntaxException {
         super(new org.springframework.http.client.HttpComponentsClientHttpRequestFactory());
         this.tryToReconnect = true;
         this.tryToReconnectTimes = DEFAULT_TRY_TO_RECONNECT_TIMES;
         this.sleepTimeBetweenTrying = DEFAULT_SLEEP_TIME_BETWEEN_TRYING;
         this.microserviceName = microserviceName;
         this.pathToApiResource = pathToApiResource;
-        this.url = SpringInjectorHelper.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect);
+        this.setErrorHandler(responseErrorHandler);
+        this.invalidRequestStatusCode = new HashSet<>();
+        invalidRequestStatusCode.add(422); // unprocessable entity
+        invalidRequestStatusCode.add(401); // unauthorized
+        invalidRequestStatusCode.add(403); // access denied
     }
 
     /**
      * {@link RestTemplate} that tried to reconnect or error
      *
-     * @param tryToReconnect true if try to retry failed request to microsrevice
-     * @param tryToReconnectTimes number of times to try to reconnect
+     * @param tryToReconnect         true if try to retry failed request to microsrevice
+     * @param tryToReconnectTimes    number of times to try to reconnect
      * @param sleepTimeBetweenTrying sleep in millias to try to reconnect between failed requests
      */
-    public MicroserviceRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource ) throws URISyntaxException {
+    public MicroserviceRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource) throws URISyntaxException {
         super(new org.springframework.http.client.HttpComponentsClientHttpRequestFactory());
         this.tryToReconnect = tryToReconnect;
         this.tryToReconnectTimes = tryToReconnectTimes;
         this.sleepTimeBetweenTrying = sleepTimeBetweenTrying;
         this.microserviceName = microserviceName;
         this.pathToApiResource = pathToApiResource;
-        this.url = SpringInjectorHelper.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect);
+        this.setErrorHandler(responseErrorHandler);
+
+        this.invalidRequestStatusCode = new HashSet<>();
+        invalidRequestStatusCode.add(422); // unprocessable entity
+        invalidRequestStatusCode.add(401); // unauthorized
+        invalidRequestStatusCode.add(403); // access denied
     }
 
-    private URI getLoadBalanceUrlForMe(){
+    private URI getLoadBalanceUrlForMe() {
         return SpringInjectorHelper.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect);
     }
 
@@ -87,6 +103,8 @@ public class MicroserviceRestTemplate extends RestTemplate {
     protected <T> T doExecute(URI urlFake, HttpMethod method, RequestCallback requestCallback, ResponseExtractor<T> responseExtractor) throws RestClientException {
         this.responseExtractor = responseExtractor;
         this.method = method;
+        URI url = SpringInjectorHelper.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect);
+        this.lastURI = url;
 
         Assert.notNull(url, "'url' must not be null");
         Assert.notNull(method, "'method' must not be null");
@@ -104,12 +122,27 @@ public class MicroserviceRestTemplate extends RestTemplate {
                 return null;
             }
             // note that we can have IOException and HttpServerErrorException
-        } catch (Exception ex) {
-            logger.error("I/O error on {} request for {} {}", method.name(), this.url.toString(), ex.getMessage(), ex.getCause());
+        } catch (IOException | RestClientException ex) {
+            try {
+                processInvalidRequest(response);
+            } catch (IOException e) {
+                logger.error("I/O error on {} request for {} {}", method.name(), url.toString(), ex.getMessage(), ex.getCause());
+
+//                TODO: we should close stream after or leak but we want somewhere in catch exception
+                if (response != null) {
+                    response.close();
+                }
+            }
             return doExecuteOnError(method, requestCallback, responseExtractor);
         } finally {
-            if (response != null) {
-                response.close();
+
+        }
+    }
+
+    private void processInvalidRequest(ClientHttpResponse response) throws IOException {
+        if (response != null && response.getStatusCode() != null) {
+            if (invalidRequestStatusCode.contains(response.getRawStatusCode())) {
+                throw new InvalidRequestException(response);
             }
         }
     }
@@ -121,6 +154,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
         boolean exitLoop = false;
         ClientHttpResponse response = null;
         ClientHttpRequest request = null;
+        URI url = null;
 
         while (!exitLoop) {
             triedTimes++;
@@ -132,7 +166,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
 
             // retry times limit
             if ((triedTimes > tryToReconnectTimes) && tryToReconnect) {
-                logger.error("Failed request {} {} tried={}", method.toString(), url.toString(), triedTimes);
+                logger.error("Failed request {} {} tried={}", method.toString(), lastURI.toString(), triedTimes);
                 throw new InternalSeverErrorProcessingRequestException("Failed request, tried=" + triedTimes);
             }
 
@@ -146,9 +180,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
                 }
                 response = request.execute();
 
-                if (response != null && response.getStatusCode() != null && response.getStatusCode().value() == invalidRequestStatusCode){
-                    throw new InvalidRequestException(response);
-                }
+                processInvalidRequest(response);
 
                 handleResponse(url, method, response);
                 if (responseExtractor != null) {
@@ -161,6 +193,10 @@ public class MicroserviceRestTemplate extends RestTemplate {
                 try {
                     logger.info("Can not make http request {} {} {} times={}", request.getMethod().toString(), request.getURI().toString(), response.getStatusText(), triedTimes);
                 } catch (Exception e1) {
+                }finally {
+                    if (response != null) {
+                        response.close();
+                    }
                 }
             }
 
@@ -173,17 +209,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
         throw new InternalSeverErrorProcessingRequestException("Failed request");
     }
 
-
-    public URI getUrl() {
-        return url;
-    }
-
-    public void setUrl(URI url) {
-        this.url = url;
-    }
-
     /**
-     *
      * @return null if no request was be done
      */
     public HttpMethod getMethod() {
@@ -213,4 +239,25 @@ public class MicroserviceRestTemplate extends RestTemplate {
     public void setResponseExtractor(ResponseExtractor responseExtractor) {
         this.responseExtractor = responseExtractor;
     }
+
+    public String getMicroserviceName() {
+        return microserviceName;
+    }
+
+    public void setMicroserviceName(String microserviceName) {
+        this.microserviceName = microserviceName;
+    }
+
+    public String getPathToApiResource() {
+        return pathToApiResource;
+    }
+
+    public void setPathToApiResource(String pathToApiResource) {
+        this.pathToApiResource = pathToApiResource;
+    }
+
+    public URI getLastURI() {
+        return lastURI;
+    }
+
 }

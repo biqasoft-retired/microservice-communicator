@@ -179,9 +179,9 @@ Also, you have access to headers and body with `responseEntity.getHeaders()` and
 
 If you have return type some object (not ResponseEntity) following unchecked exceptions can be thrown:
 
- - `InvalidRequestException` this exceptions is throws if remote host set HTTP status 422 (Unprocessable Entity).
+ - `InvalidRequestException` this exceptions is throws if remote host set HTTP status 422 (Unprocessable Entity), 401, 403.
 When we recieve such response, we immedialty throw exception, without trying new requests to another microservices
- - `InternalSeverErrorProcessingRequestException` if we have non 422 response code, can not find suitable microservice URL in service discovery predetermined number of time,
+ - `InternalSeverErrorProcessingRequestException` if we have non 422, 401, 403 response code, can not find suitable microservice URL in service discovery predetermined number of time,
 or can not retry request to microservices predetermined number of times(on error)
 
 ### License
