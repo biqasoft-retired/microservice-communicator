@@ -46,7 +46,7 @@ public @interface MicroserviceMapping {
      *
      * @return number of tries to reconnect
      */
-    int tryToReconnectTimes() default 3;
+    int tryToReconnectTimes() default 2;
 
     /**
      * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String)}
