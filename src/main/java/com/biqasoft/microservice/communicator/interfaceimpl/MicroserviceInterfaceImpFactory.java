@@ -280,20 +280,16 @@ public class MicroserviceInterfaceImpFactory {
                     boolean mergePayloadToObject = microserviceCall.mergePayloadToObject;
 
                     Object payload = null;
+                    List<Parameter> parameters = Arrays.asList(method.getParameters());
 
                     // number of params in interface for bound to URL
                     int paramsForMappingUrl = 0;
 
                     // replace {} in annotated URL
-                    for (Object o1 : method.getParameters()) {
-                        if (!(((Parameter) o1).getType().equals(String.class))) {
+                    for (Parameter parameter : parameters) {
+                        if (!(parameter.getType().equals(String.class))) {
                             continue;
                         }
-
-                        Parameter parameter = (Parameter) o1;
-                        Field field = parameter.getClass().getDeclaredField("index");
-                        field.setAccessible(true);
-                        Integer field1 = (Integer) ReflectionUtils.getField(field, parameter);
 
                         MicroservicePathVariable param = AnnotationUtils.findAnnotation(parameter, MicroservicePathVariable.class);
                         if (param == null || StringUtils.isEmpty(param.param())) {
@@ -301,7 +297,7 @@ public class MicroserviceInterfaceImpFactory {
                         }
 
                         if (!StringUtils.isEmpty(param.param())) {
-                            String paramValue = (String) Arrays.asList(objects).get(field1);
+                            String paramValue = (String) objects[parameters.indexOf(parameter)];
                             paramValue = URLEncoder.encode(paramValue, "UTF-8");
 
                             annotatedPath = annotatedPath.replace("{" + param.param() + "}", paramValue);
@@ -312,13 +308,9 @@ public class MicroserviceInterfaceImpFactory {
                     if (mergePayloadToObject) {
                         ObjectNode rootNode = factory.objectNode();
                         payload = rootNode;
-                        int paramIndex = 0;
 
                         // replace {} in annotated URL
-                        for (Object o1 : method.getParameters()) {
-                            Parameter parameter = (Parameter) o1;
-                            Field field = parameter.getClass().getDeclaredField("index");
-                            field.setAccessible(true);
+                        for (Parameter parameter : parameters) {
 
                             MicroservicePayloadVariable param = AnnotationUtils.findAnnotation(parameter, MicroservicePayloadVariable.class);
                             if (param == null) {
@@ -354,9 +346,8 @@ public class MicroserviceInterfaceImpFactory {
                                 jsonName = split[split.length - 1];
                             }
 
-                            JsonNode node = objectMapper.convertValue(objects[paramIndex], JsonNode.class);
+                            JsonNode node = objectMapper.convertValue(objects[parameters.indexOf(parameter)], JsonNode.class);
                             latestNode.set(jsonName, node);
-                            paramIndex++;
                         }
                     }
 
