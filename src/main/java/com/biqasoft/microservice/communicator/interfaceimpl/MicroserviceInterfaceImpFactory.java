@@ -4,6 +4,7 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
+import com.biqasoft.microservice.communicator.exceptions.CannotResolveHostException;
 import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
 import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
 import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
@@ -33,9 +34,11 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Proxy;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -178,7 +181,7 @@ public class MicroserviceInterfaceImpFactory {
                 if (Collection.class.isAssignableFrom(returnGenericType[0])) {
                     JavaType type = objectMapper.getTypeFactory().constructCollectionType(returnGenericType[0], returnGenericType[1]);
                     object = objectMapper.readValue(responseEntity.getBody(), type);
-                }else {
+                } else {
                     object = objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]);
                 }
 
@@ -235,7 +238,22 @@ public class MicroserviceInterfaceImpFactory {
 
             throw new InvalidStateException("Internal error processing. Retry later"); // invalid @annotation
 
-        } catch (IOException e) {
+        } catch (Throwable e) {
+            if (params != null) {
+                Object defaultValue = params.get("DEFAULT_VALUE");
+                if (defaultValue != null) {
+                    return defaultValue;
+                }
+            }
+
+            if (e instanceof InvalidRequestException) {
+                throw (InvalidRequestException) e;
+            }
+
+            if (e instanceof CannotResolveHostException) {
+                logger.error(e.getMessage(), e);
+            }
+
             logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), restTemplate.getLastURI().toString(), e);
             throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");
         }
@@ -259,6 +277,9 @@ public class MicroserviceInterfaceImpFactory {
             extendInterfaces.add(interfaceToExtend); // new microservice class - will implement microservice interface
             extendInterfaces.addAll(Arrays.asList(interfaceToExtend.getInterfaces())); // implement interface that current interface class implement
 
+            Object defaultObject = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+                    new Class[]{interfaceToExtend}, (Object proxy2, Method method2, Object[] arguments2) -> null);
+
             Object extendedInterface = Enhancer.create(UserMicroserviceRequestSuperService.class, extendInterfaces.toArray(new Class[extendInterfaces.size()]), new MethodInterceptor() {
                 @Override
                 public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
@@ -278,6 +299,20 @@ public class MicroserviceInterfaceImpFactory {
                     String microserviceName = microserviceCall.microserviceName;
                     boolean convertJsonToMap = microserviceCall.convertResponseToMap;
                     boolean mergePayloadToObject = microserviceCall.mergePayloadToObject;
+                    Object defaultValue = null;
+
+                    // java 8 default interface method
+                    if (method.isDefault()) {
+                        try {
+                            Method defaultJava8Method = interfaceToExtend.getMethod(method.getName(), method.getParameterTypes());
+                            Field field = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
+                            field.setAccessible(true);
+                            MethodHandles.Lookup lookup = (MethodHandles.Lookup) field.get(null);
+                            defaultValue = lookup.unreflectSpecial(defaultJava8Method, defaultJava8Method.getDeclaringClass()).bindTo(defaultObject).invokeWithArguments();
+                        } catch (Throwable throwable) {
+                            logger.error("Can not execute java 8 default interface method", throwable);
+                        }
+                    }
 
                     Object payload = null;
                     List<Parameter> parameters = Arrays.asList(method.getParameters());
@@ -372,6 +407,14 @@ public class MicroserviceInterfaceImpFactory {
                     if (convertJsonToMap) {
                         param = new HashMap<>();
                         param.put("convertResponseToMap", true);
+                    }
+
+                    if (defaultObject != null) {
+                        if (param == null) {
+                            param = new HashMap<>();
+                        }
+
+                        param.put("DEFAULT_VALUE", defaultValue);
                     }
 
                     if (microserviceReturnType.equals(CompletableFuture.class)) {

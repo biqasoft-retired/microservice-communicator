@@ -17,6 +17,10 @@ import org.springframework.util.ReflectionUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -82,7 +86,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
 
     @Test(enabled = true, invocationCount = 1)
     public void testReturnCompletableFutureSingleObject() throws Exception {
-        final boolean[] asyncExecutionDetect = {false, false}; // [0] -> completeFuture, [1] -> execute statement after future request(async)
+        boolean[] asyncExecutionDetect = {false, false}; // [0] -> completeFuture, [1] -> execute statement after future request(async)
 
         CompletableFuture<UserAccount> completableFuture = microserviceUsersRepository.returnCompletableFutureSingleObject();
         completableFuture.thenAccept(x -> {
@@ -93,6 +97,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertFalse(completableFuture.isDone());
 
         UserAccount userAccount = completableFuture.get();
+        Thread.sleep(100);
         Assert.assertEquals(completableFuture.isDone(), true);
 
         Assert.assertTrue(asyncExecutionDetect[0]);
@@ -117,17 +122,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         List<UserAccount> userAccounts = completableFuture.get();
         Assert.assertEquals(completableFuture.isDone(), true);
 
-        int processedTimes = 0;
-        if (!asyncExecutionDetect[0]) {
-            while (processedTimes < 5) {
-                logger.warn("Waiting execute accept on CompletableFuture times " + processedTimes);
-                if (asyncExecutionDetect[0]){
-                    break;
-                }
-                Thread.sleep(1500);
-                processedTimes++;
-            }
-        }
+        Thread.sleep(100);
 
         Assert.assertTrue(asyncExecutionDetect[0]);
         Assert.assertTrue(asyncExecutionDetect[1]);
@@ -213,6 +208,12 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
             return;
         }
         Assert.fail("Not get required exception");
+    }
+
+    @Test(enabled = true, invocationCount = 1)
+    public void testReturnDefaultValue() throws Throwable {
+        UserAccount userAccount = microserviceUsersRepository.returnDefaultValue();
+        Assert.assertEquals(userAccount.getId(), "I'm default return Java 8 interface value");
     }
 
     @Test(enabled = true, invocationCount = 1)

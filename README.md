@@ -109,6 +109,9 @@ public interface MicroserviceUsersRepository {
     @MicroserviceMapping("/domain/users/mock/null")
     Optional<UserAccount> returnSingleOptionalEmptyObject();
 
+    // default will be executed on error main request
+    @MicroserviceMapping("/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request")
+    default UserAccount returnDefaultValue(){ return new UserAccount("I'm default return Java 8 interface value"); }
 }
 ```
 

@@ -25,6 +25,13 @@ public class UserAccount {
     private String lastname;
     private AddressDTO address = new AddressDTO();
 
+    public UserAccount(String id) {
+        this.id = id;
+    }
+
+    public UserAccount() {
+    }
+
     public AddressDTO getAddress() {
         return address;
     }
