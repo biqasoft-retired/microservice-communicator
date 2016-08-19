@@ -23,7 +23,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD})
 @Component
 @Inherited
-public @interface MicroserviceMapping {
+public @interface MicroMapping {
 
     @AliasFor("path")
     String value() default "/";
@@ -55,7 +55,6 @@ public @interface MicroserviceMapping {
     int sleepTimeBetweenTrying() default 1100;
 
     boolean convertResponseToMap() default false;
-    boolean mergePayloadToObject() default false;
 
 //    MediaType contentType() default MediaType.APPLICATION_JSON;
 //    String[] produces() default {};

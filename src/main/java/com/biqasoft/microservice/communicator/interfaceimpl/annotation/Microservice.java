@@ -20,7 +20,7 @@ import java.lang.annotation.*;
 @Target({ElementType.TYPE})
 @Component
 @Inherited
-public @interface MicroserviceRequest {
+public @interface Microservice {
 
     @AliasFor("microservice")
     String value() default "";

@@ -41,21 +41,21 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     @Autowired
     private MicroserviceInterfaceImpFactory microserviceInterfaceImpFactory;
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnGenericList() throws Exception {
         List<UserAccount> allUsersInDomain = microserviceUsersRepository.returnGenericList();
         Assert.assertTrue(allUsersInDomain.size() > 2);
         Assert.assertNotNull(allUsersInDomain.get(1).getId());
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnSingleObjectWithPathParam() throws Exception {
         UserAccount account = microserviceUsersRepository.returnSingleObjectWithPathParam("users", "mock");
         Assert.assertNotNull(account);
         Assert.assertNotNull(account.getId());
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnSingleOptionalObject() throws Exception {
         Optional<UserAccount> userAccount = microserviceUsersRepository.returnSingleOptionalObject();
         Assert.assertNotNull(userAccount);
@@ -64,7 +64,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertNotNull(userAccount.get().getId());
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnListOptionalObject() throws Exception {
         Optional<List<UserAccount>> userAccounts = microserviceUsersRepository.returnListOptionalObject();
 
@@ -75,7 +75,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertNotNull(userAccounts.get().get(0).getId());
     }
 
-    @Test(enabled = true, invocationCount = 1, expectedExceptions = NoSuchElementException.class)
+    @Test(expectedExceptions = NoSuchElementException.class)
     public void testReturnSingleOptionalEmptyObject() throws Exception {
         Optional<UserAccount> userAccount = microserviceUsersRepository.returnSingleOptionalEmptyObject();
 
@@ -84,7 +84,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         userAccount.get();
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnCompletableFutureSingleObject() throws Exception {
         boolean[] asyncExecutionDetect = {false, false}; // [0] -> completeFuture, [1] -> execute statement after future request(async)
 
@@ -107,7 +107,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertNotNull(userAccount.getId());
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnListCompletableFutureSingleObject() throws Exception {
         final boolean[] asyncExecutionDetect = {false, false}; // [0] -> completeFuture, [1] -> execute statement after future request(async)
 
@@ -117,7 +117,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         });
 
         asyncExecutionDetect[1] = true; // execute some code after submitting future
-        Assert.assertFalse(completableFuture.isDone());
+//        Assert.assertFalse(completableFuture.isDone());
 
         List<UserAccount> userAccounts = completableFuture.get();
         Assert.assertEquals(completableFuture.isDone(), true);
@@ -131,35 +131,27 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertTrue(userAccounts.size() > 0);
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testПостроитьПолучитьМестоDomainГдеUsersГдеMock() throws Exception {
         List<UserAccount> allUsersInDomain = microserviceUsersRepository.построитьПолучитьМестоDomainГдеUsersГдеMock();
         Assert.assertTrue(allUsersInDomain.size() > 2);
         Assert.assertNotNull(allUsersInDomain.get(1).getId());
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnNullBodyResponse() throws Exception {
         UserAccount account = microserviceUsersRepository.returnNullBodyResponse();
         Assert.assertNull(account);
     }
 
-    @Test(enabled = false, invocationCount = 1)
-    public void testReturnNonNullNullBodyResponse() throws Exception {
-        MicroserviceInterfaceImpFactory.setReturnNullOnEmptyResponseBody(false);
-        UserAccount account = microserviceUsersRepository.returnNullBodyResponse();
-        Assert.assertNull(account);
-        MicroserviceInterfaceImpFactory.setReturnNullOnEmptyResponseBody(true);
-    }
-
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnNonNullNullBodyResponseForResponseEntity() throws Exception {
         ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnNonNullBodyResponse();
         Assert.assertNotNull(userAccountResponseEntity);
         Assert.assertNull(userAccountResponseEntity.getBody());
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnGenericResponseEntity() throws Exception {
         ResponseEntity<UserAccount> allUsersInDomainMockOneResponseEntity = microserviceUsersRepository.returnGenericResponseEntity();
         Assert.assertNotNull(allUsersInDomainMockOneResponseEntity);
@@ -167,27 +159,27 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertNotNull(allUsersInDomainMockOneResponseEntity.getBody().getId());
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnJson() throws Exception {
         JsonNode jsonNode = microserviceUsersRepository.returnJson();
         Assert.assertNotNull(jsonNode);
         Assert.assertEquals(jsonNode.path("address").path("state").asText(), "LA");
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnJsonAsMap() throws Exception {
         Map<String, Object> stringObjectMapperMap = microserviceUsersRepository.returnResponseAsJsonMap();
         Assert.assertNotNull(stringObjectMapperMap);
         Assert.assertEquals(((LinkedHashMap) stringObjectMapperMap.get("address")).get("state"), "LA");
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnInvalidResponseResponseEntity() throws Exception {
         ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnInvalidResponse();
         Assert.assertEquals(userAccountResponseEntity.getStatusCode().value(), 422);
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnInvalidResponseException() throws Exception {
         try {
             UserAccount account = microserviceUsersRepository.returnInvalidResponseException();
@@ -199,7 +191,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.fail("Not get required exception");
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnInvalidServerErrorResponseException() throws Exception {
         try {
             UserAccount account = microserviceUsersRepository.returnInvalidServerException();
@@ -210,13 +202,13 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.fail("Not get required exception");
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnDefaultValue() throws Throwable {
         UserAccount userAccount = microserviceUsersRepository.returnDefaultValue();
         Assert.assertEquals(userAccount.getId(), "I'm default return Java 8 interface value");
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnAuthenticatedUser() throws Exception {
         String username = "Nikita";
         String password = "super_secret_password";
@@ -226,7 +218,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertEquals(account.getLastname(), password);
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testCreateJsonFromParam() throws Exception {
         String username = "Nikita";
         String password = "super_secret_password";
@@ -240,7 +232,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertEquals(account.getAddress().getCity(), city);
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testReturnInvalidServerExceptionEntity() throws Exception {
         try {
             ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnInvalidServerExceptionEntity();
@@ -251,7 +243,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.fail("Not get required exception");
     }
 
-    @Test(enabled = true, invocationCount = 1)
+    @Test
     public void testAfterRequestInterceptor() throws Exception {
         UserAccount userAccount = new UserAccount();
         userAccount.setId("Secret mocked id");

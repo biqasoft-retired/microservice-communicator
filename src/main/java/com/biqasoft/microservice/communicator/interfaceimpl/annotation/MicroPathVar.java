@@ -20,12 +20,12 @@ import java.lang.annotation.*;
 @Component
 @Inherited
 @Target({ElementType.PARAMETER})
-public @interface MicroservicePayloadVariable {
+public @interface MicroPathVar {
 
-    @AliasFor("path")
+    @AliasFor("param")
     String value() default "";
 
     @AliasFor("value")
-    String path() default "";
+    String param() default "";
 
 }

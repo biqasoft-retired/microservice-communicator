@@ -10,9 +10,9 @@ import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException
 import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.http.HttpClientsHelpers;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePathVariable;
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroservicePayloadVariable;
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPathVar;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPayloadVar;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
 import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceHelper;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,7 +32,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -45,7 +44,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Implement REST methods logic interface {@link MicroserviceRequest} microservice requests
+ * Implement REST methods logic interface {@link Microservice} microservice requests
  *
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/15/2016
@@ -262,15 +261,15 @@ public class MicroserviceInterfaceImpFactory {
     /**
      * Create microservice implementation
      *
-     * @param interfaceToExtend interface, annotated {@link MicroserviceRequest}
+     * @param interfaceToExtend interface, annotated {@link Microservice}
      * @return object implemented interface
      */
     public static Object create(Class<?> interfaceToExtend) {
         if (interfaceToExtend.isInterface()) {
 
-            Annotation declaredAnnotation = interfaceToExtend.getDeclaredAnnotation(MicroserviceRequest.class);
+            Annotation declaredAnnotation = interfaceToExtend.getDeclaredAnnotation(Microservice.class);
             if (declaredAnnotation == null) {
-                throw new InvalidStateException(interfaceToExtend.toString() + " must be annotated with " + MicroserviceRequest.class.toString() + " annotation");
+                throw new InvalidStateException(interfaceToExtend.toString() + " must be annotated with " + Microservice.class.toString() + " annotation");
             }
 
             List<Class<?>> extendInterfaces = new ArrayList<>();
@@ -326,7 +325,7 @@ public class MicroserviceInterfaceImpFactory {
                             continue;
                         }
 
-                        MicroservicePathVariable param = AnnotationUtils.findAnnotation(parameter, MicroservicePathVariable.class);
+                        MicroPathVar param = AnnotationUtils.findAnnotation(parameter, MicroPathVar.class);
                         if (param == null || StringUtils.isEmpty(param.param())) {
                             continue;
                         }
@@ -347,7 +346,7 @@ public class MicroserviceInterfaceImpFactory {
                         // replace {} in annotated URL
                         for (Parameter parameter : parameters) {
 
-                            MicroservicePayloadVariable param = AnnotationUtils.findAnnotation(parameter, MicroservicePayloadVariable.class);
+                            MicroPayloadVar param = AnnotationUtils.findAnnotation(parameter, MicroPayloadVar.class);
                             if (param == null) {
                                 continue;
                             }

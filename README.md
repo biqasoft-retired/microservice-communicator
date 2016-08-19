@@ -27,91 +27,93 @@ Auto generate HTTP REST classes for interfaces.
  - Create interface, for example
  
 ```java
-@MicroserviceRequest("test-microservice") // test-microservice is id in service discovery
+@Microservice("test-microservice") // test-microservice is id in service discovery
 public interface MicroserviceUsersRepository {
 
-    @MicroserviceMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)// HTTP GET - default, you can leave it
+    @MicroMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)// HTTP GET - default, you can leave it
     UserAccount returnSingleObject();
 
-    @MicroserviceMapping("/domain/users/mock/null")
+    @MicroMapping("/domain/users/mock/null")
     UserAccount returnNullBodyResponse();
 
-    @MicroserviceMapping("/domain/users/mock/null")
+    @MicroMapping("/domain/users/mock/null")
     ResponseEntity<UserAccount> returnNonNullBodyResponse();
 
-    @MicroserviceMapping("/domain/users/mock")
+    @MicroMapping("/domain/users/mock")
     List<UserAccount> returnGenericList();
 
-    @MicroserviceMapping("/domain/users/mock/one")
+    @MicroMapping("/domain/users/mock/one")
     ResponseEntity<UserAccount> returnGenericResponseEntity();
 
     // russian special language
     // equals to findAllUsersInDomainMock() - GET /domain/users/mock
-    @MicroserviceMapping
+    @MicroMapping
     List<UserAccount> построитьПолучитьМестоDomainГдеUsersГдеMock();
 
     // in tests url will be /domain/users/mock/one
-    @MicroserviceMapping("/domain/{s1}/{s2}/one")
-    UserAccount returnSingleObjectWithPathParam(@MicroservicePathVariable("s1") String s,
-                                                @MicroservicePathVariable("s2") String s2);
+    @MicroMapping("/domain/{s1}/{s2}/one")
+    UserAccount returnSingleObjectWithPathParam(@MicroPathVar("s1") String s,
+                                                @MicroPathVar("s2") String s2);
 
-    @MicroserviceMapping("/domain/users/mock/one")
+    @MicroMapping("/domain/users/mock/one")
     JsonNode returnJson();
 
-    @MicroserviceMapping(path = "/domain/users/mock/one", convertResponseToMap = true)
+    @MicroMapping(path = "/domain/users/mock/one", convertResponseToMap = true)
     Map<String, Object> returnResponseAsJsonMap();
 
-    @MicroserviceMapping("/domain/users/mock/send_invalid_request")
+    @MicroMapping("/domain/users/mock/send_invalid_request")
     ResponseEntity<UserAccount> returnInvalidResponse();
 
-    @MicroserviceMapping("/domain/users/mock/send_invalid_request")
+    @MicroMapping("/domain/users/mock/send_invalid_request")
     UserAccount returnInvalidResponseException();
 
+    // this endpoint simulate server error
     // will be 3 attempts (by default) to try again with interval (default 1100ms)
-    @MicroserviceMapping("/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request")
+    @MicroMapping("/domain/users/mock/generate_500_http_error")
     UserAccount returnInvalidServerException();
 
-    @MicroserviceMapping("/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request")
+    @MicroMapping("/domain/users/mock/generate_500_http_error")
     ResponseEntity<UserAccount> returnInvalidServerExceptionEntity();
 
-    @MicroserviceMapping(path = "/domain/users/mock/authenticate", method = HttpMethod.POST, mergePayloadToObject = true)
-    UserAccount returnAuthenticatedUser(@MicroservicePayloadVariable("username") String username,
-                                        @MicroservicePayloadVariable("password") String password);
+    @MicroMapping(path = "/domain/users/mock/authenticate", method = HttpMethod.POST)
+    UserAccount returnAuthenticatedUser(@MicroPayloadVar("username") String username,
+                                        @MicroPayloadVar("password") String password);
 
     // will be POST json
     // {
     //    "username": %username%,
     //    "password": %password%,
     //    "address" : {
-    //                   "country": %addressCountry%,
+    //                   "country": %country%,
     //                   "city": %city%
     //                }
     // }
     // %username% etc... will be replaced by java function param
-    @MicroserviceMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST, mergePayloadToObject = true)
-    UserAccount returnAuthenticatedUserComplexEcho(@MicroservicePayloadVariable("username") String username,
-                                                   @MicroservicePayloadVariable("password") String password,
-                                                   @MicroservicePayloadVariable("address.country") String addressCountry,
-                                                   @MicroservicePayloadVariable("address.city") String city);
+    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)
+    UserAccount returnAuthenticatedUserComplexEcho(@MicroPayloadVar("username") String username,
+                                                   @MicroPayloadVar("password") String password,
+                                                   @MicroPayloadVar("address.country") String country,
+                                                   @MicroPayloadVar("address.city") String city);
 
-    @MicroserviceMapping("/domain/users/mock/one")
+    @MicroMapping("/domain/users/mock/one")
     CompletableFuture<UserAccount> returnCompletableFutureSingleObject();
 
-    @MicroserviceMapping("/domain/users/mock")
+    @MicroMapping("/domain/users/mock")
     CompletableFuture<List<UserAccount>> returnListCompletableFutureObjects();
 
-    @MicroserviceMapping("/domain/users/mock/one")// HTTP GET - default, you can leave it
+    @MicroMapping("/domain/users/mock/one")
     Optional<UserAccount> returnSingleOptionalObject();
 
-    @MicroserviceMapping("/domain/users/mock")
+    @MicroMapping("/domain/users/mock")
     Optional<List<UserAccount>> returnListOptionalObject();
 
-    @MicroserviceMapping("/domain/users/mock/null")
+    @MicroMapping("/domain/users/mock/null")
     Optional<UserAccount> returnSingleOptionalEmptyObject();
 
     // default will be executed on error main request
-    @MicroserviceMapping("/domain/users/mock/simulate_that_server_is_busy_and_can_not_process_current_request")
+    @MicroMapping("/domain/users/mock/generate_500_http_error")
     default UserAccount returnDefaultValue(){ return new UserAccount("I'm default return Java 8 interface value"); }
+
 }
 ```
 

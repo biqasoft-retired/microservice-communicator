@@ -4,7 +4,7 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -27,8 +27,9 @@ public class MicroserviceBPP implements BeanPostProcessor {
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceBPP.class);
 
     /**
+     * Does our object instance implement interface that have annotated with {@link Microservice}
      * @param o object to check
-     * @return null if bean is not created from {@link MicroserviceRequest} or {@link Type} if created from interface
+     * @return null if bean is not created from {@link Microservice} or {@link Type} if created from interface
      */
     public static Type isMicroserviceAnnotation(Object o) {
         try {
@@ -44,7 +45,7 @@ public class MicroserviceBPP implements BeanPostProcessor {
                 Object o2 = field2.get(o1);
 
                 if (o2 instanceof LinkedHashMap) {
-                    if (((LinkedHashMap) o2).containsKey(MicroserviceRequest.class)) {
+                    if (((LinkedHashMap) o2).containsKey(Microservice.class)) {
                         return type;
                     }
                 }

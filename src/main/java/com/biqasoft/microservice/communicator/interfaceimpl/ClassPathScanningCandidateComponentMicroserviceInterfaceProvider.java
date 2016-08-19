@@ -4,13 +4,13 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 
 /**
- * Find all interfaces that extends {@link MicroserviceRequest} in requested basePackage
+ * Find all interfaces that extends {@link Microservice} in requested basePackage
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/17/2016
  *         All Rights Reserved
@@ -19,7 +19,7 @@ public class ClassPathScanningCandidateComponentMicroserviceInterfaceProvider ex
 
     public ClassPathScanningCandidateComponentMicroserviceInterfaceProvider() {
         super(false);
-        addIncludeFilter(new AnnotationTypeFilter(MicroserviceRequest.class, false));
+        addIncludeFilter(new AnnotationTypeFilter(Microservice.class, false));
     }
 
     /**

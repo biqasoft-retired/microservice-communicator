@@ -4,8 +4,9 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceMapping;
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroserviceRequest;
+import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroMapping;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
 import com.strobel.reflection.Type;
 import com.strobel.reflection.TypeBindings;
 import org.slf4j.Logger;
@@ -55,14 +56,14 @@ public class MicroserviceCachedParsedAnnotationInterface {
         MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall = new MicroserviceInterfaceImpFactory.CachedMicroserviceCall();
         MicroserviceInterfaceImpFactory.SpecialLanguage specialLanguage = SpecialLanguageNotation.isProcessSpecialLanguageNotation(method);
 
-        MicroserviceMapping microserviceMapping = AnnotationUtils.findAnnotation(method, MicroserviceMapping.class);
+        MicroMapping microMapping = AnnotationUtils.findAnnotation(method, MicroMapping.class);
         Class[] returnGenericType = null;
         Class<?> microserviceReturnType = null;
         String microserviceName = null;
 
         try {
             Class aClass = Class.forName(MicroserviceBPP.isMicroserviceAnnotation(o).getTypeName());
-            Annotation declaredAnnotation = AnnotationUtils.findAnnotation(aClass, MicroserviceRequest.class);
+            Annotation declaredAnnotation = AnnotationUtils.findAnnotation(aClass, Microservice.class);
             microserviceName = (String) AnnotationUtils.getValue(declaredAnnotation, "microservice");
 
             microserviceReturnType = method.getReturnType();
@@ -111,13 +112,21 @@ public class MicroserviceCachedParsedAnnotationInterface {
         }
 
         if (specialLanguage == null) {
-            cachedMicroserviceCall.annotatedPath = microserviceMapping.path();
-            cachedMicroserviceCall.httpMethod = microserviceMapping.method();
-            cachedMicroserviceCall.tryToReconnect = microserviceMapping.tryToReconnect();
-            cachedMicroserviceCall.tryToReconnectTimes = microserviceMapping.tryToReconnectTimes();
-            cachedMicroserviceCall.sleepTimeBetweenTrying = microserviceMapping.sleepTimeBetweenTrying();
-            cachedMicroserviceCall.convertResponseToMap = microserviceMapping.convertResponseToMap();
-            cachedMicroserviceCall.mergePayloadToObject = microserviceMapping.mergePayloadToObject();
+            cachedMicroserviceCall.annotatedPath = microMapping.path();
+            cachedMicroserviceCall.httpMethod = microMapping.method();
+            cachedMicroserviceCall.tryToReconnect = microMapping.tryToReconnect();
+            cachedMicroserviceCall.tryToReconnectTimes = microMapping.tryToReconnectTimes();
+            cachedMicroserviceCall.sleepTimeBetweenTrying = microMapping.sleepTimeBetweenTrying();
+            cachedMicroserviceCall.convertResponseToMap = microMapping.convertResponseToMap();
+
+            if (method.getParameterAnnotations().length > 0){
+                cachedMicroserviceCall.mergePayloadToObject = true;
+
+                if (method.getParameterCount() != method.getParameterAnnotations().length){
+                    throw new InvalidStateException("You have " + method.getParameterCount() + " parameters but only " + method.getParameterAnnotations().length + " annotated vars");
+                }
+            }
+
         } else {
             SpecialLanguageNotation.processSpecialLanguageNotation(cachedMicroserviceCall, method, o, specialLanguage);
         }
