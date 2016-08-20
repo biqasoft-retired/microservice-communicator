@@ -105,6 +105,6 @@ public interface MicroserviceUsersRepository {
 
     // default will be executed on error main request
     @MicroMapping("/domain/users/mock/generate_500_http_error")
-    default UserAccount returnDefaultValue(){ return new UserAccount("I'm default return Java 8 interface value"); }
+    default UserAccount returnDefaultValue(){ return new UserAccount("I'm default Java 8 interface"); }
 
 }
