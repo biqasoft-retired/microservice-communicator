@@ -9,16 +9,22 @@ if [[ $TRAVIS_PULL_REQUEST == "false" ]]; then
     # semver format. for example 1.2.2-RELEASE+build.15
 #    mvn build-helper:parse-version versions:set -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.incrementalVersion}-RELEASE+build.$TRAVIS_JOB_ID
 
-    # deploy to maven binary repo
-    mvn package --settings $BASE_DIR/deploy/settings.xml -DperformRelease=true -Dmaven.javadoc.skip=true -Dgpg.skip=true
-#    PROJECT_VERSION="`mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version 2> /dev/null |grep -Ev '(^\[|Download\w+:)'`"
+    # java 9 test
+
+    # only ubuntu 16.04 have in repo early build jdk9
+    # sudo apt-get update & sudo apt install openjdk-9-jdk
+    wget http://download.java.net/java/jdk9/archive/131/binaries/jdk-9-ea+131_linux-x64_bin.tar.gz
+    tar -xvf jdk-9-ea+131_linux-x64_bin.tar.gz
+    sudo mv jdk-9 java-9-openjdk-amd64
+    sudo mv java-9-openjdk-amd64 /usr/lib/jvm
+    env MAVEN_SKIP_RC="true" JAVA_HOME="/usr/lib/jvm/java-9-openjdk-amd64" JRE_HOME="/usr/lib/jvm/java-9-openjdk-amd64" mvn package -Pjdk9 -Djacoco.skip=true
 
     mvn clean
 
-    # java 9 test
-    sudo apt install openjdk-9-jdk
-    env JAVA_HOME="/usr/lib/jvm/java-9-openjdk-amd64" JRE_HOME="/usr/lib/jvm/java-9-openjdk-amd64" mvn package -Pjdk9
+    # deploy to maven binary repo
+    mvn package --settings $BASE_DIR/deploy/settings.xml -DperformRelease=true -Dmaven.javadoc.skip=true -Dgpg.skip=true
 
+#    PROJECT_VERSION="`mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version 2> /dev/null |grep -Ev '(^\[|Download\w+:)'`"
 #    echo "PROJECT_VERSION is $PROJECT_VERSION"
 
 # end build
