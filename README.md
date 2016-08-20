@@ -165,7 +165,7 @@ public class ServiceDiscoveryConfiguration {
     private String serverUrl;
 
     @Bean
-    public ConsulClient consulClient() throws Exception {
+    public ConsulClient consulClient(){
         ConsulClient client = new ConsulClient( serverUrl );
         return client;
     }

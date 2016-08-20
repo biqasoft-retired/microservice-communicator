@@ -20,9 +20,8 @@ public class ServiceDiscoveryConfiguration {
     @Value("${spring.cloud.consul.host}")
     private String serverUrl;
 
-    public
     @Bean
-    ConsulClient consulClient() throws Exception {
+    public ConsulClient consulClient(){
         ConsulClient client = new ConsulClient( serverUrl );
         return client;
     }
