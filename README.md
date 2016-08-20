@@ -112,8 +112,7 @@ public interface MicroserviceUsersRepository {
 
     // default will be executed on error main request
     @MicroMapping("/domain/users/mock/generate_500_http_error")
-    default UserAccount returnDefaultValue(){ return new UserAccount("I'm default return Java 8 interface value"); }
-
+    default UserAccount returnDefaultValue(){ return new UserAccount("I'm default Java 8 interface"); }
 }
 ```
 
@@ -140,7 +139,7 @@ To use this extension on Maven-based projects, use following dependency:
 <dependency>
   <groupId>com.biqasoft</groupId>
   <artifactId>microservice-communicator</artifactId>
-  <version>1.2.10-RELEASE</version>
+  <version>1.2.13-RELEASE</version>
 </dependency>
 ```
  
