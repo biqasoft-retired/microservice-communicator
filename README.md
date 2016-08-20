@@ -189,5 +189,9 @@ When we recieve such response, we immedialty throw exception, without trying new
  - `InternalSeverErrorProcessingRequestException` if we have non 422, 401, 403 response code, can not find suitable microservice URL in service discovery predetermined number of time,
 or can not retry request to microservices predetermined number of times(on error)
 
+## Java 9
+Spring 4.3 requires to add custom VM option to run `-addmods java.xml.bind`,
+optionally you can use `-ea -XaddExports:java.base/jdk.internal.loader=ALL-UNNAMED  -addmods java.xml.bind`
+
 ### License
 Copyright © 2016 [Nikita Bakaev](http://nbakaev.ru). Licensed under the Apache License.
