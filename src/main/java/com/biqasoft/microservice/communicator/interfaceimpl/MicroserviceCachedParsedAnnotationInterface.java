@@ -6,6 +6,7 @@ package com.biqasoft.microservice.communicator.interfaceimpl;
 
 import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroMapping;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPayloadVar;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
 import com.strobel.reflection.Type;
 import com.strobel.reflection.TypeBindings;
@@ -119,10 +120,18 @@ public class MicroserviceCachedParsedAnnotationInterface {
             cachedMicroserviceCall.sleepTimeBetweenTrying = microMapping.sleepTimeBetweenTrying();
             cachedMicroserviceCall.convertResponseToMap = microMapping.convertResponseToMap();
 
+            // we have [][]
             if (method.getParameterAnnotations().length > 0){
-                cachedMicroserviceCall.mergePayloadToObject = true;
+                for (Annotation[] annotations : method.getParameterAnnotations()){
+                    for (Annotation annotation : annotations){
+                        if (annotation.annotationType().equals(MicroPayloadVar.class)){
+                            cachedMicroserviceCall.mergePayloadToObject = true;
+                            break;
+                        }
+                    }
+                }
 
-                if (method.getParameterCount() != method.getParameterAnnotations().length){
+                if ( cachedMicroserviceCall.mergePayloadToObject && ( (method.getParameterCount() + 1) != method.getParameterAnnotations().length)){
                     throw new InvalidStateException("You have " + method.getParameterCount() + " parameters but only " + method.getParameterAnnotations().length + " annotated vars");
                 }
             }
