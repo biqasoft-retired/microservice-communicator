@@ -19,22 +19,23 @@ import java.util.List;
  */
 public class SpecialLanguageNotation {
 
-    static MicroserviceInterfaceImpFactory.SpecialLanguage isProcessSpecialLanguageNotation(Method method) {
+    static SpecialLanguage isProcessSpecialLanguageNotation(Method method) {
 
         if (method.getName().startsWith("buildMe")) {
-            return MicroserviceInterfaceImpFactory.SpecialLanguage.EN;
+            return SpecialLanguage.EN;
         }
 
         if (method.getName().startsWith("построить")) {
-            return MicroserviceInterfaceImpFactory.SpecialLanguage.RU;
+            return SpecialLanguage.RU;
         }
         return null;
     }
 
-    static void processSpecialLanguageNotation(MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall, Method method, Object o, MicroserviceInterfaceImpFactory.SpecialLanguage specialLanguage) {
+    static void processSpecialLanguageNotation(MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall, Method method, Object o, SpecialLanguage specialLanguage) {
         String methodName = method.getName();
 
-        if (specialLanguage == MicroserviceInterfaceImpFactory.SpecialLanguage.RU) {
+        // russian language
+        if (specialLanguage == SpecialLanguage.RU) {
             List<String> split = new ArrayList<>(Arrays.asList(methodName.split("(?<!(^|[А-Я]))(?=[А-Я])|(?<!^)(?=[А-Я][а-я])")));
 
             // remove useSpecialLanguage signature
@@ -75,10 +76,15 @@ public class SpecialLanguageNotation {
 
             }
 
-        } else if (specialLanguage == MicroserviceInterfaceImpFactory.SpecialLanguage.EN) {
+        } else if (specialLanguage == SpecialLanguage.EN) {
             throw new UnsupportedOperationException("English is not supported yet");
 //                String[] split = methodName.split("(?<!(^|[A-Z]))(?=[A-Z])|(?<!^)(?=[A-Z][a-z])");
         }
+    }
+
+    enum SpecialLanguage {
+        EN,
+        RU
     }
 
 }

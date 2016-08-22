@@ -4,7 +4,6 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
-import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroMapping;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPayloadVar;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
@@ -13,6 +12,7 @@ import com.strobel.reflection.TypeBindings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.util.ClassUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -55,7 +55,7 @@ public class MicroserviceCachedParsedAnnotationInterface {
         logger.info("Create microservice impl of method {}", method.getName());
 
         MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall = new MicroserviceInterfaceImpFactory.CachedMicroserviceCall();
-        MicroserviceInterfaceImpFactory.SpecialLanguage specialLanguage = SpecialLanguageNotation.isProcessSpecialLanguageNotation(method);
+        SpecialLanguageNotation.SpecialLanguage specialLanguage = SpecialLanguageNotation.isProcessSpecialLanguageNotation(method);
 
         MicroMapping microMapping = AnnotationUtils.findAnnotation(method, MicroMapping.class);
         Class[] returnGenericType = null;
@@ -63,10 +63,19 @@ public class MicroserviceCachedParsedAnnotationInterface {
         String microserviceName = null;
 
         try {
-            Class aClass = Class.forName(MicroserviceBPP.isMicroserviceAnnotation(o).getTypeName());
-            Annotation declaredAnnotation = AnnotationUtils.findAnnotation(aClass, Microservice.class);
-            microserviceName = (String) AnnotationUtils.getValue(declaredAnnotation, "microservice");
+            Class aClass = null;
+            Annotation declaredAnnotation = null;
 
+            Class<?>[] allInterfaces = ClassUtils.getAllInterfaces(o);
+            for (Class c : allInterfaces){
+                declaredAnnotation = AnnotationUtils.findAnnotation(c, Microservice.class);
+                if (declaredAnnotation != null){
+                    aClass = c;
+                    break;
+                }
+            }
+
+            microserviceName = (String) AnnotationUtils.getValue(declaredAnnotation, "microservice");
             microserviceReturnType = method.getReturnType();
 
             // get generic type...
@@ -129,10 +138,6 @@ public class MicroserviceCachedParsedAnnotationInterface {
                             break;
                         }
                     }
-                }
-
-                if ( cachedMicroserviceCall.mergePayloadToObject && ( (method.getParameterCount() + 1) != method.getParameterAnnotations().length)){
-                    throw new InvalidStateException("You have " + method.getParameterCount() + " parameters but only " + method.getParameterAnnotations().length + " annotated vars");
                 }
             }
 

@@ -1,5 +1,6 @@
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
+import com.biqasoft.microservice.communicator.MicroserviceRequestMaker;
 import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
 import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
 import com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount;
@@ -36,6 +37,9 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
 
     @Autowired
     private MicroserviceInterfaceImpFactory microserviceInterfaceImpFactory;
+
+    @Autowired
+    private MicroserviceRequestMaker microserviceRequestMaker;
 
     @Test
     public void testReturnGenericList() throws Exception {
@@ -229,6 +233,20 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test
+    public void testReturnPayloadFromName() throws Exception {
+        String username = "Nikita";
+        String password = "super_secret_password";
+        String country = "LAAAAA";
+        String city = "BOO";
+        UserAccount account = microserviceUsersRepository.returnPayloadFromName(username, password, country, city);
+
+        Assert.assertEquals(account.getUsername(), username);
+        Assert.assertEquals(account.getPassword(), password);
+        Assert.assertEquals(account.getAddress().getCountry(), country);
+        Assert.assertEquals(account.getAddress().getCity(), city);
+    }
+
+    @Test
     public void testReturnInvalidServerExceptionEntity() throws Exception {
         try {
             ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnInvalidServerExceptionEntity();
@@ -250,20 +268,20 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         MicroserviceRequestInterceptor microserviceRequestInterceptor = new MicroserviceRequestInterceptor() {
             @Override
             public void afterRequest(String microserviceName, String microservicePath, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType) {
-                ReflectionUtils.setField(MicroserviceInterfaceImpFactory.body, responseEntity, bytes);
+                ReflectionUtils.setField(MicroserviceRequestMaker.body, responseEntity, bytes);
             }
         };
 
-        int beforeInterceptors = microserviceInterfaceImpFactory.getMicroserviceRequestInterceptors().size();
-        microserviceInterfaceImpFactory.getMicroserviceRequestInterceptors().add(microserviceRequestInterceptor);
+        int beforeInterceptors = microserviceRequestMaker.getMicroserviceRequestInterceptors().size();
+        microserviceRequestMaker.getMicroserviceRequestInterceptors().add(microserviceRequestInterceptor);
 
         UserAccount account = microserviceUsersRepository.returnSingleObject();
         Assert.assertNotNull(account);
         Assert.assertNotNull(account.getId());
         Assert.assertEquals(account.getId(), userAccount.getId());
 
-        microserviceInterfaceImpFactory.getMicroserviceRequestInterceptors().remove(microserviceRequestInterceptor);
-        Assert.assertEquals(microserviceInterfaceImpFactory.getMicroserviceRequestInterceptors().size(), beforeInterceptors, "Not deleted after request interceptor");
+        microserviceRequestMaker.getMicroserviceRequestInterceptors().remove(microserviceRequestInterceptor);
+        Assert.assertEquals(microserviceRequestMaker.getMicroserviceRequestInterceptors().size(), beforeInterceptors, "Not deleted after request interceptor");
     }
 
 }

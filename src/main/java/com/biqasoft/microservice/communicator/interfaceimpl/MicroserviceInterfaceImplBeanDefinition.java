@@ -12,15 +12,15 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Condition;
+import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -28,25 +28,22 @@ import java.util.Set;
  *         All Rights Reserved
  */
 @Component
-public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRegistryPostProcessor {
+public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRegistryPostProcessor, Condition {
 
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceInterfaceImplBeanDefinition.class);
+    private volatile boolean enabled;
+    private final Map<String, Object> objectMap = new HashMap<>();
 
-    private void scanPackage(String basePackage, BeanDefinitionRegistry beanDefinitionRegistry) {
+    private void scanPackage(String basePackage) {
         ClassPathScanningCandidateComponentMicroserviceInterfaceProvider provider = new ClassPathScanningCandidateComponentMicroserviceInterfaceProvider();
         Set<BeanDefinition> components = provider.findCandidateComponents(basePackage);
         for (BeanDefinition component : components) {
             String interfaceClassName = component.getBeanClassName();
             try {
-                Object beanSignature = MicroserviceInterfaceImpFactory.create(Class.forName(interfaceClassName));
-
-                String beanName = beanSignature.getClass().getName();
-                GenericBeanDefinition definition = new GenericBeanDefinition();
-                definition.setScope("singleton");
-                definition.setBeanClass(beanSignature.getClass());
-
-                beanDefinitionRegistry.registerBeanDefinition(beanName, definition);
-                logger.debug("Find microservice interface {}", interfaceClassName);
+                Class interfaceClass = Class.forName(interfaceClassName);
+                Object beanSignature = MicroserviceInterfaceImpFactory.create(interfaceClass);
+                objectMap.put(  interfaceClass.getName() , beanSignature);
+                logger.info("Find microservice interface {}", interfaceClassName);
             } catch (Exception e) {
                 logger.error("Error init dynamic microservice {}", interfaceClassName, e);
             }
@@ -108,23 +105,24 @@ public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRe
                     if (basePackages.length >= 1 && !basePackages[0].equals("")) {
                         for (String basePackage : basePackages) {
                             resolveBasePackage = true;
-                            scanPackage(basePackage, beanDefinitionRegistry);
+                            scanPackage(basePackage);
                         }
                     }
                 } else {
                     logger.warn("Found @EnableMicroserviceCommunicator but not found basePackage attribute");
                 }
+                break;
             } else {
                 // we have not EnableMicroserviceCommunicator annotation
             }
         }
 
         // if not found annotation attribute with @EnableMicroserviceCommunicator - try to find and use @ComponentScan annotation
-        if (!resolveBasePackage) {
+        if (!resolveBasePackage & findRequireAnnotation) {
             String[] strings = tryToExtractComponentScanAnnotationFromConfigurationClasses(configurationClasses);
             if (strings != null) {
                 for (String basePackage : strings) {
-                    scanPackage(basePackage, beanDefinitionRegistry);
+                    scanPackage(basePackage);
                 }
             }
         }
@@ -132,12 +130,18 @@ public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRe
         if (!findRequireAnnotation) {
             logger.info("Not find @EnableMicroserviceCommunicator annotation on configuration class. Skipping scanning interfaces");
         }
-
+        enabled = findRequireAnnotation;
     }
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory configurableListableBeanFactory) throws BeansException {
-
+        for (Map.Entry<String, Object> stringObjectEntry : objectMap.entrySet()) {
+            configurableListableBeanFactory.registerSingleton(stringObjectEntry.getKey(), stringObjectEntry.getValue());
+        }
     }
 
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return this.enabled;
+    }
 }

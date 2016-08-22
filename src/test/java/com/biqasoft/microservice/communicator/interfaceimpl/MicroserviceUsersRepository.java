@@ -23,7 +23,8 @@ import java.util.concurrent.CompletableFuture;
 @Microservice("test-microservice") // test-microservice is id in service discovery
 public interface MicroserviceUsersRepository {
 
-    @MicroMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)// HTTP GET - default, you can leave it
+    @MicroMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+// HTTP GET - default, you can leave it
     UserAccount returnSingleObject();
 
     @MicroMapping("/domain/users/mock/null")
@@ -88,6 +89,14 @@ public interface MicroserviceUsersRepository {
                                                    @MicroPayloadVar("address.country") String country,
                                                    @MicroPayloadVar("address.city") String city);
 
+    // use java 8 with javac -parameters to add parameter name and use as json node name
+    // instead of annotation value with dot(.) delimiter - in parameter name - is decimeter
+    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)
+    UserAccount returnPayloadFromName(@MicroPayloadVar String username,
+                                      @MicroPayloadVar String password,
+                                      @MicroPayloadVar String address_country,
+                                      @MicroPayloadVar String address_city);
+
     @MicroMapping("/domain/users/mock/one")
     CompletableFuture<UserAccount> returnCompletableFutureSingleObject();
 
@@ -105,6 +114,8 @@ public interface MicroserviceUsersRepository {
 
     // default will be executed on error main request
     @MicroMapping("/domain/users/mock/generate_500_http_error")
-    default UserAccount returnDefaultValue(){ return new UserAccount("I'm default Java 8 interface"); }
+    default UserAccount returnDefaultValue() {
+        return new UserAccount("I'm default Java 8 interface");
+    }
 
 }
