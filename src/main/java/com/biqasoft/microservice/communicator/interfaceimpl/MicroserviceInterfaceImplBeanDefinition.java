@@ -81,6 +81,7 @@ public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRe
                 try {
                     Class aClass = Class.forName(beanDefinition.getBeanClassName());
                     classes.add(aClass);
+                    break;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -97,11 +98,11 @@ public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRe
 
         for (Class aClass : configurationClasses) {
             Annotation declaredAnnotation = aClass.getDeclaredAnnotation(EnableMicroserviceCommunicator.class);
-            if (declaredAnnotation != null && declaredAnnotation instanceof EnableMicroserviceCommunicator) {
+            if (declaredAnnotation != null) {
                 findRequireAnnotation = true;
                 String[] basePackages = ((EnableMicroserviceCommunicator) declaredAnnotation).basePackages();
 
-                if (basePackages != null && basePackages.length > 0) {
+                if (basePackages.length > 0) {
                     if (basePackages.length >= 1 && !basePackages[0].equals("")) {
                         for (String basePackage : basePackages) {
                             resolveBasePackage = true;
