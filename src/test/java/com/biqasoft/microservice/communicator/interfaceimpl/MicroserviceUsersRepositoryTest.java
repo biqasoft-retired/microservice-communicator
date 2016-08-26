@@ -3,9 +3,12 @@ package com.biqasoft.microservice.communicator.interfaceimpl;
 import com.biqasoft.microservice.communicator.MicroserviceRequestMaker;
 import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
 import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
+import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
@@ -19,7 +22,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.*;
 
 /**
  * @author Nikita Bakaev, ya@nbakaev.ru
@@ -36,10 +39,9 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     private MicroserviceUsersRepository microserviceUsersRepository;
 
     @Autowired
-    private MicroserviceInterfaceImpFactory microserviceInterfaceImpFactory;
-
-    @Autowired
     private MicroserviceRequestMaker microserviceRequestMaker;
+
+    private static final Logger logger = LoggerFactory.getLogger(MicroserviceUsersRepositoryTest.class);
 
     @Test
     public void testReturnGenericList() throws Exception {
@@ -117,11 +119,11 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         });
 
         asyncExecutionDetect[1] = true; // execute some code after submitting future
-//        Assert.assertFalse(completableFuture.isDone());
 
         List<UserAccount> userAccounts = completableFuture.get();
         Assert.assertEquals(completableFuture.isDone(), true);
 
+        // think that completableFuture.thenAccept will be executed for that time
         Thread.sleep(100);
 
         Assert.assertTrue(asyncExecutionDetect[0]);
@@ -282,6 +284,66 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
 
         microserviceRequestMaker.getMicroserviceRequestInterceptors().remove(microserviceRequestInterceptor);
         Assert.assertEquals(microserviceRequestMaker.getMicroserviceRequestInterceptors().size(), beforeInterceptors, "Not deleted after request interceptor");
+    }
+
+    @Test
+    public void testModifyReturnInterceptor() throws Exception {
+        MicroserviceRequestInterceptor microserviceRequestInterceptor = new MicroserviceRequestInterceptor() {
+            @Override
+            public Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType, HttpMethod httpMethod, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
+                if (modifiedObject instanceof UserAccount){
+                    ((UserAccount) modifiedObject).setId("MODIFIED ID");
+                }
+                return modifiedObject;
+            }
+        };
+
+        int beforeInterceptors = microserviceRequestMaker.getMicroserviceRequestInterceptors().size();
+        microserviceRequestMaker.getMicroserviceRequestInterceptors().add(microserviceRequestInterceptor);
+
+        UserAccount account = microserviceUsersRepository.returnSingleObject();
+        Assert.assertNotNull(account);
+        Assert.assertNotNull(account.getId());
+        Assert.assertEquals(account.getId(), "MODIFIED ID");
+
+        microserviceRequestMaker.getMicroserviceRequestInterceptors().remove(microserviceRequestInterceptor);
+        Assert.assertEquals(microserviceRequestMaker.getMicroserviceRequestInterceptors().size(), beforeInterceptors, "Not deleted after request interceptor");
+    }
+
+    @Test(enabled = false)
+    public void testManyRequests() throws Exception {
+        final int capacity = 30_000;
+
+        ScheduledThreadPoolExecutor threadPoolExecutor  = new ScheduledThreadPoolExecutor(capacity/10);
+        List<Callable<UserAccount>> lists = new ArrayList<>();
+
+        for (int i=0; i < capacity; i++){
+            int finalI = i;
+            lists.add(() -> {
+                logger.info("I'm {}", finalI);
+                String username = "Nikita";
+                String password = "super_secret_password";
+                String country = "LAAAAA";
+                String city = "BOO";
+                return microserviceUsersRepository.returnAuthenticatedUserComplexEcho(username, password, country, city);
+            });
+        }
+
+        Thread thread = new Thread(() -> {
+            try {
+                threadPoolExecutor.invokeAll(lists);
+            } catch (InterruptedException e) {
+                logger.error("err", e);
+            }
+        });
+
+        thread.start();
+
+        while (threadPoolExecutor.getCompletedTaskCount() == 0 || threadPoolExecutor.getActiveCount() > 0){
+            logger.info("executed={} tasks={}", threadPoolExecutor.getActiveCount(), threadPoolExecutor.getTaskCount());
+            Thread.sleep(300);
+        }
+
     }
 
 }

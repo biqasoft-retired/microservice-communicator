@@ -67,9 +67,6 @@ public class MicroserviceInterfaceImpFactory {
             extendInterfaces.add(interfaceToExtend); // new microservice class - will implement microservice interface
             extendInterfaces.addAll(Arrays.asList(interfaceToExtend.getInterfaces())); // implement interface that current interface class implement
 
-            Object defaultObject = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                    new Class[]{interfaceToExtend}, (Object proxy2, Method method2, Object[] arguments2) -> null);
-
             Object extendedInterface = Enhancer.create(UserMicroserviceRequestSuperService.class, extendInterfaces.toArray(new Class[extendInterfaces.size()]), new MethodInterceptor() {
                 @Override
                 public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
@@ -89,19 +86,12 @@ public class MicroserviceInterfaceImpFactory {
                     String microserviceName = microserviceCall.microserviceName;
                     boolean convertJsonToMap = microserviceCall.convertResponseToMap;
                     boolean mergePayloadToObject = microserviceCall.mergePayloadToObject;
-                    Object defaultValue = null;
 
                     // java 8 default interface method
-                    if (method.isDefault()) {
-                        try {
-                            Method defaultJava8Method = interfaceToExtend.getMethod(method.getName(), method.getParameterTypes());
-                            Field field = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
-                            field.setAccessible(true);
-                            MethodHandles.Lookup lookup = (MethodHandles.Lookup) field.get(null);
-                            defaultValue = lookup.unreflectSpecial(defaultJava8Method, defaultJava8Method.getDeclaringClass()).bindTo(defaultObject).invokeWithArguments();
-                        } catch (Throwable throwable) {
-                            logger.error("Can not execute java 8 default interface method", throwable);
-                        }
+                    boolean haveDefaultValue = method.isDefault();
+
+                    if (haveDefaultValue) {
+
                     }
 
                     Object payload = null;
@@ -130,11 +120,11 @@ public class MicroserviceInterfaceImpFactory {
                         }
                     }
 
+                    // create(merge) json payload from many method arguments
                     if (mergePayloadToObject) {
                         ObjectNode rootNode = factory.objectNode();
                         payload = rootNode;
 
-                        // create(merge) json payload from many method arguments
                         for (Parameter parameter : parameters) {
 
                             MicroPayloadVar param = AnnotationUtils.findAnnotation(parameter, MicroPayloadVar.class);
@@ -149,7 +139,7 @@ public class MicroserviceInterfaceImpFactory {
                                 jsonName = param.path();
                             } else {
                                 // java 8 param reflection
-                                if (!parameter.isNamePresent()){
+                                if (!parameter.isNamePresent()) {
                                     throw new InvalidStateException("You try to use java 8 param name extract via reflection, but looks like, not compile javac with -parameters");
                                 }
                                 jsonName = parameter.getName();
@@ -158,7 +148,7 @@ public class MicroserviceInterfaceImpFactory {
 
                             ObjectNode latestNode = rootNode;
                             if (jsonName.contains(delimiter)) {
-                                String[] split = jsonName.split( delimiter.equals(".") ? "\\." : "_");
+                                String[] split = jsonName.split(delimiter.equals(".") ? "\\." : "_");
                                 int i = 0;
                                 for (String s : split) {
                                     if ((i + 1) == split.length) {
@@ -205,21 +195,29 @@ public class MicroserviceInterfaceImpFactory {
                         param.put("convertResponseToMap", true);
                     }
 
-                    if (defaultObject != null) {
+                    if (haveDefaultValue) {
                         if (param == null) {
                             param = new HashMap<>();
                         }
 
-                        param.put("DEFAULT_VALUE", defaultValue);
+                        param.put("HAVE_DEFAULT_VALUE", true);
+                        param.put("DEFAULT_INTERFACE_PROXY_METHOD", method);
+                        param.put("INTERFACE_IMPLEMENTED", interfaceToExtend);
                     }
 
                     if (microserviceReturnType.equals(CompletableFuture.class)) {
-                        Map<String, Object> finalParam = param;
                         Object finalPayload = payload;
+                        Map<String, Object> finalParam = param;
                         return CompletableFuture
-                                .supplyAsync(() -> MicroserviceRequestMaker.makeRequestToMicroservice(finalPayload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, finalParam));
+                                .supplyAsync(() -> {
+                                    Object result = MicroserviceRequestMaker.makeRequestToMicroservice(finalPayload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, finalParam);
+                                    result = MicroserviceRequestMaker.onBeforeReturnResultProcessor(result, finalPayload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, finalParam);
+                                    return result;
+                                });
                     } else {
                         Object result = MicroserviceRequestMaker.makeRequestToMicroservice(payload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
+                        result = MicroserviceRequestMaker.onBeforeReturnResultProcessor(result, payload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
+
                         logger.debug("End microservice method {} in {}", method.getName(), o.toString());
                         return result;
                     }
