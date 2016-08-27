@@ -72,15 +72,14 @@ public class MicroserviceRequestMaker {
     /**
      * Allow modify request before return from interface
      *
-     * @param modifiedObject    object that we want to return
-     * @param originalObject    original(default) object from internal request processing
+     * @param returnObjectOriginal    original(default) object from internal request processing
      * @param payload           request payload
      * @param returnType        return type in interface
      * @param httpMethod        request http method
      * @param restTemplate      request microserviceRestTemplate
      * @param returnGenericType return types generic info
      * @param params            additional params
-     * @return object that interface will return
+     * @return object that we want to return. object that interface will return
      */
     public static Object onBeforeReturnResultProcessor(Object returnObjectOriginal, Object payload, Class returnType, HttpMethod httpMethod,
                                                        MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
@@ -266,7 +265,7 @@ public class MicroserviceRequestMaker {
     /**
      * Get default java 8 interface return value
      *
-     * @param params
+     * @param params params
      * @return return from interface
      */
     private static Object getDefaultValue(Map<String, Object> params) {
