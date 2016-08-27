@@ -13,6 +13,9 @@ install:
 notifications:
   email: false
 env:
+  matrix:
+  - JAVA_VERSION=openjdk8
+  - JAVA_VERSION=openjdk9
   global:
   - BASE_DIR="`pwd`"
 cache:
