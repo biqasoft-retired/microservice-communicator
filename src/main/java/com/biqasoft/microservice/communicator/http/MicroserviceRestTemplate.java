@@ -36,7 +36,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
 
     private URI lastURI = null;
 
-    private HttpMethod method;
+    private final HttpMethod method;
     private RequestCallback requestCallback;
     private ClientHttpRequest clientHttpRequest;
     private ResponseExtractor responseExtractor;
@@ -50,27 +50,31 @@ public class MicroserviceRestTemplate extends RestTemplate {
     private final int tryToReconnectTimes;
     private final int sleepTimeBetweenTrying;
 
-    private String microserviceName;
-    private String pathToApiResource;
+    private final String microserviceName;
+    private final String pathToApiResource;
 
     private final static int DEFAULT_TRY_TO_RECONNECT_TIMES = 11;
     private final static int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1000;
-    private Set<Integer> invalidRequestStatusCode;
+    private final static Set<Integer> defaultInvalidRequestStatusCode;
+
+    static {
+        defaultInvalidRequestStatusCode = new HashSet<>();
+        defaultInvalidRequestStatusCode.add(422); // unprocessable entity
+        defaultInvalidRequestStatusCode.add(401); // unauthorized
+        defaultInvalidRequestStatusCode.add(403); // access denied
+    }
 
     private static ResponseErrorHandler responseErrorHandler = new ResponseErrorHandler();
 
-    public MicroserviceRestTemplate(String microserviceName, String pathToApiResource) throws URISyntaxException {
+    public MicroserviceRestTemplate(String microserviceName, String pathToApiResource, HttpMethod httpMethod) throws URISyntaxException {
         super(new org.springframework.http.client.HttpComponentsClientHttpRequestFactory());
         this.tryToReconnect = true;
         this.tryToReconnectTimes = DEFAULT_TRY_TO_RECONNECT_TIMES;
         this.sleepTimeBetweenTrying = DEFAULT_SLEEP_TIME_BETWEEN_TRYING;
         this.microserviceName = microserviceName;
         this.pathToApiResource = pathToApiResource;
+        this.method = httpMethod;
         this.setErrorHandler(responseErrorHandler);
-        this.invalidRequestStatusCode = new HashSet<>();
-        invalidRequestStatusCode.add(422); // unprocessable entity
-        invalidRequestStatusCode.add(401); // unauthorized
-        invalidRequestStatusCode.add(403); // access denied
     }
 
     /**
@@ -78,21 +82,21 @@ public class MicroserviceRestTemplate extends RestTemplate {
      *
      * @param tryToReconnect         true if try to retry failed request to microsrevice
      * @param tryToReconnectTimes    number of times to try to reconnect
+     * @param microserviceName microservice name
+     * @param pathToApiResource pathToApiResource
+     * @param httpMethod http method
      * @param sleepTimeBetweenTrying sleep in millias to try to reconnect between failed requests
+     * @throws URISyntaxException exception
      */
-    public MicroserviceRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource) throws URISyntaxException {
+    public MicroserviceRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource, HttpMethod httpMethod) throws URISyntaxException {
         super(new org.springframework.http.client.HttpComponentsClientHttpRequestFactory());
         this.tryToReconnect = tryToReconnect;
         this.tryToReconnectTimes = tryToReconnectTimes;
         this.sleepTimeBetweenTrying = sleepTimeBetweenTrying;
         this.microserviceName = microserviceName;
         this.pathToApiResource = pathToApiResource;
+        this.method = httpMethod;
         this.setErrorHandler(responseErrorHandler);
-
-        this.invalidRequestStatusCode = new HashSet<>();
-        invalidRequestStatusCode.add(422); // unprocessable entity
-        invalidRequestStatusCode.add(401); // unauthorized
-        invalidRequestStatusCode.add(403); // access denied
     }
 
     private URI getLoadBalanceUrlForMe() {
@@ -102,7 +106,6 @@ public class MicroserviceRestTemplate extends RestTemplate {
     @Override
     protected <T> T doExecute(URI urlFake, HttpMethod method, RequestCallback requestCallback, ResponseExtractor<T> responseExtractor) throws RestClientException {
         this.responseExtractor = responseExtractor;
-        this.method = method;
         URI url = SpringInjectorHelper.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect);
         this.lastURI = url;
 
@@ -141,7 +144,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
 
     private void processInvalidRequest(ClientHttpResponse response) throws IOException {
         if (response != null && response.getStatusCode() != null) {
-            if (invalidRequestStatusCode.contains(response.getRawStatusCode())) {
+            if (defaultInvalidRequestStatusCode.contains(response.getRawStatusCode())) {
                 throw new InvalidRequestException(response);
             }
         }
@@ -154,7 +157,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
         boolean exitLoop = false;
         ClientHttpResponse response = null;
         ClientHttpRequest request = null;
-        URI url = null;
+        URI url;
 
         while (!exitLoop) {
             triedTimes++;
@@ -179,7 +182,6 @@ public class MicroserviceRestTemplate extends RestTemplate {
                     requestCallback.doWithRequest(request);
                 }
                 response = request.execute();
-
                 processInvalidRequest(response);
 
                 handleResponse(url, method, response);
@@ -244,16 +246,8 @@ public class MicroserviceRestTemplate extends RestTemplate {
         return microserviceName;
     }
 
-    public void setMicroserviceName(String microserviceName) {
-        this.microserviceName = microserviceName;
-    }
-
     public String getPathToApiResource() {
         return pathToApiResource;
-    }
-
-    public void setPathToApiResource(String pathToApiResource) {
-        this.pathToApiResource = pathToApiResource;
     }
 
     public URI getLastURI() {

@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -42,6 +41,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     private MicroserviceRequestMaker microserviceRequestMaker;
 
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceUsersRepositoryTest.class);
+    private int executedDefaultInterfaceTimes = 0;
 
     @Test
     public void testReturnGenericList() throws Exception {
@@ -210,6 +210,19 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Assert.assertEquals(userAccount.getId(), "I'm default Java 8 interface");
     }
 
+    /**
+     * Assert that we call every time default method implementation with arguments
+     * @throws Throwable test error
+     */
+    @Test(invocationCount = 3)
+    public void testReturnDefaultValueWithParam() throws Throwable {
+        this.executedDefaultInterfaceTimes ++;
+        String returnDefault = "I'm default Java 8 interface" + this.executedDefaultInterfaceTimes;
+
+        UserAccount userAccount = microserviceUsersRepository.returnDefaultValue(returnDefault);
+        Assert.assertEquals(userAccount.getId(), returnDefault );
+    }
+
     @Test
     public void testReturnAuthenticatedUser() throws Exception {
         String username = "Nikita";
@@ -269,7 +282,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
 
         MicroserviceRequestInterceptor microserviceRequestInterceptor = new MicroserviceRequestInterceptor() {
             @Override
-            public void afterRequest(String microserviceName, String microservicePath, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType) {
+            public void afterRequest(MicroserviceRestTemplate restTemplate, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType) {
                 ReflectionUtils.setField(MicroserviceRequestMaker.body, responseEntity, bytes);
             }
         };
@@ -290,7 +303,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     public void testModifyReturnInterceptor() throws Exception {
         MicroserviceRequestInterceptor microserviceRequestInterceptor = new MicroserviceRequestInterceptor() {
             @Override
-            public Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType, HttpMethod httpMethod, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
+            public Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
                 if (modifiedObject instanceof UserAccount){
                     ((UserAccount) modifiedObject).setId("MODIFIED ID");
                 }

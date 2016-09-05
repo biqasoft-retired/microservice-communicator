@@ -34,6 +34,9 @@ public class MicroserviceRequestMaker {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceRequestMaker.class);
+    public static final String DEFAULT_INTERFACE_PROXY_METHOD = "DEFAULT_INTERFACE_PROXY_METHOD";
+    public static final String INTERFACE_IMPLEMENTED = "INTERFACE_IMPLEMENTED";
+    public static final String METHOD_PARAMS = "METHOD_PARAMS";
 
     private static MicroserviceHelper microserviceHelper;
     public final static ThreadLocal<Map<String, String>> httpHeadersThreadLocal = new ThreadLocal<Map<String, String>>() {
@@ -69,19 +72,26 @@ public class MicroserviceRequestMaker {
         MicroserviceRequestMaker.microserviceRequestInterceptors = microserviceRequestInterceptors;
     }
 
+    public static void beforeProcessRequest(MicroserviceRestTemplate restTemplate, HttpHeaders httpHeaders){
+        if (microserviceRequestInterceptors != null) {
+            microserviceRequestInterceptors.forEach(x -> {
+                x.beforeProcessRequest(restTemplate,httpHeaders);
+            });
+        }
+    }
+
     /**
      * Allow modify request before return from interface
      *
      * @param returnObjectOriginal    original(default) object from internal request processing
      * @param payload           request payload
      * @param returnType        return type in interface
-     * @param httpMethod        request http method
      * @param restTemplate      request microserviceRestTemplate
      * @param returnGenericType return types generic info
      * @param params            additional params
      * @return object that we want to return. object that interface will return
      */
-    public static Object onBeforeReturnResultProcessor(Object returnObjectOriginal, Object payload, Class returnType, HttpMethod httpMethod,
+    public static Object onBeforeReturnResultProcessor(Object returnObjectOriginal, Object payload, Class returnType,
                                                        MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
         if (microserviceRequestInterceptors == null) {
             return returnObjectOriginal;
@@ -90,22 +100,24 @@ public class MicroserviceRequestMaker {
         Object returnObject = returnObjectOriginal;
         for (MicroserviceRequestInterceptor microserviceRequestInterceptor : microserviceRequestInterceptors) {
             returnObject = microserviceRequestInterceptor.onBeforeReturnResult(returnObject, returnObjectOriginal,
-                    payload, returnType, httpMethod, restTemplate, returnGenericType, params);
+                    payload, returnType, restTemplate, returnGenericType, params);
         }
         return returnObject;
     }
 
     /**
+     * @param restTemplate           rest template
      * @param payload           object that will be send in HTTP POST and PUT methods
      * @param returnType        java return type in interface. If generic - collection
-     * @param httpMethod        HTTP method
      * @param returnGenericType null if return type is not generic
+     * @param httpHeaders http headers
      * @return response from server depend on interface return method or null if remote server has not response body
      */
-    public static Object makeRequestToMicroservice(Object payload, Class returnType, HttpMethod httpMethod,
-                                                   MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
+    public static Object makeRequestToMicroservice(Object payload, Class returnType, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params,
+                                                   HttpHeaders httpHeaders) {
+        HttpMethod httpMethod = restTemplate.getMethod();
+
         try {
-            HttpHeaders httpHeaders = new HttpHeaders();
 
             for (Map.Entry<String, String> entry : httpHeadersThreadLocal.get().entrySet()) {
                 httpHeaders.add(entry.getKey(), entry.getValue());
@@ -118,7 +130,7 @@ public class MicroserviceRequestMaker {
 
             if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.beforeCreateHttpEntity(restTemplate.getMicroserviceName(), restTemplate.getPathToApiResource(), httpMethod, returnType, returnGenericType, httpHeaders);
+                    x.beforeCreateHttpEntity(restTemplate, returnType, returnGenericType, httpHeaders);
                 });
             }
 
@@ -131,14 +143,14 @@ public class MicroserviceRequestMaker {
 
             if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.beforeRequest(restTemplate.getMicroserviceName(), restTemplate.getPathToApiResource(), httpMethod, request, returnType, returnGenericType);
+                    x.beforeRequest(restTemplate, request, returnType, returnGenericType);
                 });
             }
 
             ResponseEntity<byte[]> responseEntity;
             try {
                 // get all responses as byte[] and if we request object - deserialize then
-                responseEntity = restTemplate.exchange(null, httpMethod, request, byte[].class);
+                responseEntity = restTemplate.exchange(null, restTemplate.getMethod(), request, byte[].class);
             } catch (InvalidRequestException e) {
 
                 if (returnType.equals(ResponseEntity.class)) {
@@ -163,7 +175,7 @@ public class MicroserviceRequestMaker {
 
             if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.afterRequest(restTemplate.getMicroserviceName(), restTemplate.getPathToApiResource(), httpMethod, request, responseEntity, returnType, returnGenericType);
+                    x.afterRequest(restTemplate, request, responseEntity, returnType, returnGenericType);
                 });
             }
 
@@ -269,22 +281,20 @@ public class MicroserviceRequestMaker {
      * @return return from interface
      */
     private static Object getDefaultValue(Map<String, Object> params) {
-        Method method = (Method) params.get("DEFAULT_INTERFACE_PROXY_METHOD");
-        Class<?> interfaceToExtend = (Class<?>) params.get("INTERFACE_IMPLEMENTED");
+        Method method = (Method) params.get(DEFAULT_INTERFACE_PROXY_METHOD);
+        Class<?> interfaceToExtend = (Class<?>) params.get(INTERFACE_IMPLEMENTED);
+        Object[] methodParams = (Object[]) params.get(METHOD_PARAMS);
 
-        Object defaultInterfaceProxy = defaultObjectImplProxy.get(interfaceToExtend.toString());
-        if (defaultInterfaceProxy == null) {
-            defaultInterfaceProxy = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                    new Class[]{interfaceToExtend}, (Object proxy2, Method method2, Object[] arguments2) -> null);
-            defaultObjectImplProxy.put(interfaceToExtend.toString(), defaultInterfaceProxy);
-        }
+        Object defaultInterfaceProxy = defaultObjectImplProxy.computeIfAbsent(interfaceToExtend.toString(),
+                x -> Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
+                new Class[]{interfaceToExtend}, (Object proxy2, Method method2, Object[] arguments2) -> null));
 
         try {
             Method defaultJava8Method = interfaceToExtend.getMethod(method.getName(), method.getParameterTypes());
             Field field = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
             field.setAccessible(true);
             MethodHandles.Lookup lookup = (MethodHandles.Lookup) field.get(null);
-            return lookup.unreflectSpecial(defaultJava8Method, defaultJava8Method.getDeclaringClass()).bindTo(defaultInterfaceProxy).invokeWithArguments();
+            return lookup.unreflectSpecial(defaultJava8Method, defaultJava8Method.getDeclaringClass()).bindTo(defaultInterfaceProxy).invokeWithArguments(methodParams);
         } catch (Throwable throwable) {
             logger.error("Can not execute java 8 default interface method", throwable);
             throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");

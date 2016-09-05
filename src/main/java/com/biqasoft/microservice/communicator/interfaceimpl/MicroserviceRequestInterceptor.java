@@ -22,9 +22,12 @@ import java.util.Map;
 public interface MicroserviceRequestInterceptor {
 
    // you can modify http request headers here
-   default void beforeCreateHttpEntity(String microserviceName, String microservicePath, HttpMethod httpMethod, Class returnType, Class[] returnGenericType, HttpHeaders httpHeaders){};
-   default void beforeRequest(String microserviceName, String microservicePath, HttpMethod httpMethod, HttpEntity<Object> request, Class returnType, Class[] returnGenericType){};
-   default void afterRequest(String microserviceName, String microservicePath, HttpMethod httpMethod, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType){};
+   default void beforeCreateHttpEntity(MicroserviceRestTemplate restTemplate, Class returnType, Class[] returnGenericType, HttpHeaders httpHeaders){};
+   default void beforeRequest(MicroserviceRestTemplate restTemplate, HttpEntity<Object> request, Class returnType, Class[] returnGenericType){};
+   default void afterRequest(MicroserviceRestTemplate restTemplate, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType){};
+
+   // before execution async request. executed yet in same thread as main request
+   default void beforeProcessRequest(MicroserviceRestTemplate restTemplate, HttpHeaders httpHeaders){};
 
    /**
     * Executed when we parse, deserialize response from server, executed after MicroserviceRequestInterceptor#afterRequest method
@@ -33,13 +36,12 @@ public interface MicroserviceRequestInterceptor {
     * @param originalObject original(default) object from internal request processing
     * @param payload request payload
     * @param returnType return type in interface
-    * @param httpMethod request http method
     * @param restTemplate request microserviceRestTemplate
     * @param returnGenericType return types generic info
     * @param params additional params
     * @return object that interface will return
     */
-   default Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType, HttpMethod httpMethod,
+   default Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType,
                                        MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params){return originalObject;}
 
 }

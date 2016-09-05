@@ -4,6 +4,7 @@
 
 package com.biqasoft.microservice.communicator.interfaceimpl.annotation;
 
+import com.biqasoft.microservice.communicator.http.HttpClientsHelpers;
 import org.springframework.core.annotation.AliasFor;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
@@ -35,21 +36,21 @@ public @interface MicroMapping {
     HttpMethod method() default HttpMethod.GET;
 
     /**
-     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String)}
+     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String, HttpMethod)} (Boolean, int, int, String, String)}
      *
      * @return true if try to reconnect to service on error
      */
     boolean tryToReconnect() default true;
 
     /**
-     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String)}
+     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String, HttpMethod)} (Boolean, int, int, String, String)}
      *
      * @return number of tries to reconnect
      */
     int tryToReconnectTimes() default 2;
 
     /**
-     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String)}
+     * see {@link HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String, HttpMethod)} ()} (Boolean, int, int, String, String)}
      * @return millisecond between trying
      */
     int sleepTimeBetweenTrying() default 1100;

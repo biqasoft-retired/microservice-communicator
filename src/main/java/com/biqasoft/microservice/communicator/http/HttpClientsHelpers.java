@@ -4,6 +4,7 @@
 
 package com.biqasoft.microservice.communicator.http;
 
+import org.springframework.http.HttpMethod;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
@@ -16,13 +17,22 @@ import java.net.URISyntaxException;
 public class HttpClientsHelpers {
 
     /**
+     * @param tryToReconnect         true if try to retry failed request to microsrevice
+     * @param tryToReconnectTimes    number of times to try to reconnect
+     * @param microserviceName microservice name
+     * @param pathToApiResource pathToApiResource
+     * @param httpMethod http method
+     * @param sleepTimeBetweenTrying sleep in millias to try to reconnect between failed requests
+     *
      * RestTemplate client can be not thread safe (depend on class implementation)
      * So, in secured to create a new instance to control result of each request
      *
      * @return new default spring HTTP restTemplate
+     * @throws URISyntaxException exception
      */
-    public static MicroserviceRestTemplate getRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource) throws URISyntaxException {
-        MicroserviceRestTemplate restTemplate = new MicroserviceRestTemplate(tryToReconnect, tryToReconnectTimes, sleepTimeBetweenTrying, microserviceName, pathToApiResource);
+    public static MicroserviceRestTemplate getRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource,
+                                                           HttpMethod httpMethod) throws URISyntaxException {
+        MicroserviceRestTemplate restTemplate = new MicroserviceRestTemplate(tryToReconnect, tryToReconnectTimes, sleepTimeBetweenTrying, microserviceName, pathToApiResource, httpMethod);
         restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
         return restTemplate;
     }

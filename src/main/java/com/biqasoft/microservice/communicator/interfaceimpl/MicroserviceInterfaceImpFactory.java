@@ -26,11 +26,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.lang.annotation.Annotation;
-import java.lang.invoke.MethodHandles;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.Proxy;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -89,10 +86,6 @@ public class MicroserviceInterfaceImpFactory {
 
                     // java 8 default interface method
                     boolean haveDefaultValue = method.isDefault();
-
-                    if (haveDefaultValue) {
-
-                    }
 
                     Object payload = null;
                     List<Parameter> parameters = Arrays.asList(method.getParameters());
@@ -187,7 +180,7 @@ public class MicroserviceInterfaceImpFactory {
                     }
 
                     MicroserviceRestTemplate restTemplate = HttpClientsHelpers.getRestTemplate(microserviceCall.tryToReconnect, microserviceCall.tryToReconnectTimes,
-                            microserviceCall.sleepTimeBetweenTrying, microserviceName, annotatedPath);
+                            microserviceCall.sleepTimeBetweenTrying, microserviceName, annotatedPath, httpMethod);
                     Map<String, Object> param = null;
 
                     if (convertJsonToMap) {
@@ -201,22 +194,26 @@ public class MicroserviceInterfaceImpFactory {
                         }
 
                         param.put("HAVE_DEFAULT_VALUE", true);
-                        param.put("DEFAULT_INTERFACE_PROXY_METHOD", method);
-                        param.put("INTERFACE_IMPLEMENTED", interfaceToExtend);
+                        param.put(MicroserviceRequestMaker.DEFAULT_INTERFACE_PROXY_METHOD, method);
+                        param.put(MicroserviceRequestMaker.INTERFACE_IMPLEMENTED, interfaceToExtend);
+                        param.put(MicroserviceRequestMaker.METHOD_PARAMS, objects);
                     }
+
+                    HttpHeaders httpHeaders = new HttpHeaders();
+                    MicroserviceRequestMaker.beforeProcessRequest(restTemplate, httpHeaders);
 
                     if (microserviceReturnType.equals(CompletableFuture.class)) {
                         Object finalPayload = payload;
                         Map<String, Object> finalParam = param;
                         return CompletableFuture
                                 .supplyAsync(() -> {
-                                    Object result = MicroserviceRequestMaker.makeRequestToMicroservice(finalPayload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, finalParam);
-                                    result = MicroserviceRequestMaker.onBeforeReturnResultProcessor(result, finalPayload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, finalParam);
+                                    Object result = MicroserviceRequestMaker.makeRequestToMicroservice(finalPayload, microserviceReturnType, restTemplate, returnGenericType, finalParam, httpHeaders);
+                                    result = MicroserviceRequestMaker.onBeforeReturnResultProcessor(result, finalPayload, microserviceReturnType, restTemplate, returnGenericType, finalParam);
                                     return result;
                                 });
                     } else {
-                        Object result = MicroserviceRequestMaker.makeRequestToMicroservice(payload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
-                        result = MicroserviceRequestMaker.onBeforeReturnResultProcessor(result, payload, microserviceReturnType, httpMethod, restTemplate, returnGenericType, param);
+                        Object result = MicroserviceRequestMaker.makeRequestToMicroservice(payload, microserviceReturnType, restTemplate, returnGenericType, param, httpHeaders);
+                        result = MicroserviceRequestMaker.onBeforeReturnResultProcessor(result, payload, microserviceReturnType, restTemplate, returnGenericType, param);
 
                         logger.debug("End microservice method {} in {}", method.getName(), o.toString());
                         return result;
