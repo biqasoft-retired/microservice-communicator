@@ -269,7 +269,7 @@ public class MicroserviceRequestMaker {
                 logger.error(e.getMessage(), e);
             }
 
-            logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), restTemplate.getLastURI().toString(), e);
+            logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), restTemplate.getLastURI() == null ? "NULL_URL" : restTemplate.getLastURI().toString(), e);
             throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");
         }
     }
