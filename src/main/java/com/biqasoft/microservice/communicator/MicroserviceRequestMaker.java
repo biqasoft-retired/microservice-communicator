@@ -141,12 +141,6 @@ public class MicroserviceRequestMaker {
                 request = new HttpEntity<>(payload, httpHeaders);
             }
 
-            if (microserviceRequestInterceptors != null) {
-                microserviceRequestInterceptors.forEach(x -> {
-                    x.beforeRequest(restTemplate, request, returnType, returnGenericType);
-                });
-            }
-
             ResponseEntity<byte[]> responseEntity;
             try {
                 // get all responses as byte[] and if we request object - deserialize then
@@ -158,7 +152,7 @@ public class MicroserviceRequestMaker {
                         ClientHttpResponse clientHttpResponse = e.getClientHttpResponse();
 
                         if (clientHttpResponse.getBody() != null) {
-                            String body = null;
+                            String body;
                             Scanner s = new Scanner(clientHttpResponse.getBody()).useDelimiter("\\A");
                             body = s.hasNext() ? s.next() : "";
 
@@ -239,8 +233,7 @@ public class MicroserviceRequestMaker {
                 if (returnType.equals(Map.class) && returnGenericType.length == 2 && returnGenericType[0].equals(String.class) && returnGenericType[1].equals(Object.class)) {
                     if (params != null && Boolean.TRUE.equals(params.get("convertResponseToMap"))) {
                         JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
-                        Map<String, String> map = objectMapper.convertValue(jsonNode, Map.class);
-                        return map;
+                        return objectMapper.convertValue(jsonNode, Map.class);
                     }
                 }
 
@@ -305,6 +298,14 @@ public class MicroserviceRequestMaker {
 
 
     public List<MicroserviceRequestInterceptor> getMicroserviceRequestInterceptors() {
+        if (microserviceRequestInterceptors == null) {
+            microserviceRequestInterceptors = new ArrayList<>();
+        }
+
+        return microserviceRequestInterceptors;
+    }
+
+    public static List<MicroserviceRequestInterceptor> getMicroserviceRequestInterceptorsStaticInternal() {
         if (microserviceRequestInterceptors == null) {
             microserviceRequestInterceptors = new ArrayList<>();
         }

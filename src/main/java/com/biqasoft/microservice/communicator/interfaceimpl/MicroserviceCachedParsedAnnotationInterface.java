@@ -61,6 +61,8 @@ public class MicroserviceCachedParsedAnnotationInterface {
         Class[] returnGenericType = null;
         Class<?> microserviceReturnType = null;
         String microserviceName = null;
+        String basePath = null;
+        boolean https = false;
 
         try {
             Class aClass = null;
@@ -76,6 +78,8 @@ public class MicroserviceCachedParsedAnnotationInterface {
             }
 
             microserviceName = (String) AnnotationUtils.getValue(declaredAnnotation, "microservice");
+            basePath = (String) AnnotationUtils.getValue(declaredAnnotation, "basePath");
+            https = (boolean) AnnotationUtils.getValue(declaredAnnotation, "https");
             microserviceReturnType = method.getReturnType();
 
             // get generic type...
@@ -145,9 +149,11 @@ public class MicroserviceCachedParsedAnnotationInterface {
             SpecialLanguageNotation.processSpecialLanguageNotation(cachedMicroserviceCall, method, o, specialLanguage);
         }
 
+        cachedMicroserviceCall.https = https ;
         cachedMicroserviceCall.microserviceName = microserviceName;
         cachedMicroserviceCall.microserviceReturnType = microserviceReturnType;
         cachedMicroserviceCall.returnGenericType = returnGenericType;
+        cachedMicroserviceCall.basePath = basePath;
 
         cachedMicroserviceCallMap.put(method.hashCode(), cachedMicroserviceCall);
         return cachedMicroserviceCall;

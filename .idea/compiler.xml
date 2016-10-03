@@ -32,7 +32,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="microservice-communicator" target="1.9" />
+      <module name="microservice-communicator" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

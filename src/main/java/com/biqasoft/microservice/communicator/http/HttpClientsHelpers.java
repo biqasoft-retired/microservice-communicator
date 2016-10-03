@@ -23,6 +23,8 @@ public class HttpClientsHelpers {
      * @param pathToApiResource pathToApiResource
      * @param httpMethod http method
      * @param sleepTimeBetweenTrying sleep in millias to try to reconnect between failed requests
+     * @param httpMethod    httpMethod
+     * @param https    use http or https
      *
      * RestTemplate client can be not thread safe (depend on class implementation)
      * So, in secured to create a new instance to control result of each request
@@ -31,10 +33,8 @@ public class HttpClientsHelpers {
      * @throws URISyntaxException exception
      */
     public static MicroserviceRestTemplate getRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource,
-                                                           HttpMethod httpMethod) throws URISyntaxException {
-        MicroserviceRestTemplate restTemplate = new MicroserviceRestTemplate(tryToReconnect, tryToReconnectTimes, sleepTimeBetweenTrying, microserviceName, pathToApiResource, httpMethod);
-        restTemplate.getMessageConverters().add(new MappingJackson2HttpMessageConverter());
-        return restTemplate;
+                                                           HttpMethod httpMethod, boolean https) throws URISyntaxException {
+        return new MicroserviceRestTemplate(tryToReconnect, tryToReconnectTimes, sleepTimeBetweenTrying, microserviceName, pathToApiResource, httpMethod, https);
     }
 
     public static RestTemplate getRestTemplate() {

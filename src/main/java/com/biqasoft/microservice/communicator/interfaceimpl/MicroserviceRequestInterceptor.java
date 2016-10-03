@@ -7,9 +7,9 @@ package com.biqasoft.microservice.communicator.interfaceimpl;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 
+import java.net.URI;
 import java.util.Map;
 
 /**
@@ -23,11 +23,14 @@ public interface MicroserviceRequestInterceptor {
 
    // you can modify http request headers here
    default void beforeCreateHttpEntity(MicroserviceRestTemplate restTemplate, Class returnType, Class[] returnGenericType, HttpHeaders httpHeaders){};
-   default void beforeRequest(MicroserviceRestTemplate restTemplate, HttpEntity<Object> request, Class returnType, Class[] returnGenericType){};
+   default void beforeRequest(MicroserviceRestTemplate restTemplate, URI uri){};
    default void afterRequest(MicroserviceRestTemplate restTemplate, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType){};
 
    // before execution async request. executed yet in same thread as main request
    default void beforeProcessRequest(MicroserviceRestTemplate restTemplate, HttpHeaders httpHeaders){};
+
+
+   default void onException(MicroserviceRestTemplate restTemplate, URI uri, Exception e){};
 
    /**
     * Executed when we parse, deserialize response from server, executed after MicroserviceRequestInterceptor#afterRequest method

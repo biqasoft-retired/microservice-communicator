@@ -81,8 +81,10 @@ public class MicroserviceInterfaceImpFactory {
                     Class[] returnGenericType = microserviceCall.returnGenericType;
                     Class<?> microserviceReturnType = microserviceCall.microserviceReturnType;
                     String microserviceName = microserviceCall.microserviceName;
+                    String basePath = microserviceCall.basePath;
                     boolean convertJsonToMap = microserviceCall.convertResponseToMap;
                     boolean mergePayloadToObject = microserviceCall.mergePayloadToObject;
+                    boolean https = microserviceCall.https;
 
                     // java 8 default interface method
                     boolean haveDefaultValue = method.isDefault();
@@ -92,6 +94,10 @@ public class MicroserviceInterfaceImpFactory {
 
                     // number of params in interface for bound to URL
                     int paramsForMappingUrl = 0;
+
+                    if (!StringUtils.isEmpty(basePath)){
+                        annotatedPath = basePath + annotatedPath;
+                    }
 
                     // replace {} in annotated URL
                     for (Parameter parameter : parameters) {
@@ -180,7 +186,7 @@ public class MicroserviceInterfaceImpFactory {
                     }
 
                     MicroserviceRestTemplate restTemplate = HttpClientsHelpers.getRestTemplate(microserviceCall.tryToReconnect, microserviceCall.tryToReconnectTimes,
-                            microserviceCall.sleepTimeBetweenTrying, microserviceName, annotatedPath, httpMethod);
+                            microserviceCall.sleepTimeBetweenTrying, microserviceName, annotatedPath, httpMethod, https);
                     Map<String, Object> param = null;
 
                     if (convertJsonToMap) {
@@ -234,9 +240,11 @@ public class MicroserviceInterfaceImpFactory {
         HttpMethod httpMethod = null;
         String annotatedPath = null;
         String microserviceName = null;
+        String basePath = null;
 
         boolean convertResponseToMap = false;
         boolean mergePayloadToObject = false;
+        boolean https = false;
         boolean tryToReconnect;
         int tryToReconnectTimes;
         int sleepTimeBetweenTrying;

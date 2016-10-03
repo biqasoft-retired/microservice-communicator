@@ -28,4 +28,8 @@ public @interface Microservice {
     @AliasFor("value")
     String microservice() default "";
 
+    boolean https() default false;
+
+    String basePath() default "";
+
 }

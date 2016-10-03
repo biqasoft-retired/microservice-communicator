@@ -29,19 +29,16 @@ public class MicroserviceHelper {
     private final int FAIL_AFTER_UNSUCCESS_TIMES = 4;
     private final int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1200;
 
-    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource) {
-        return getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, DEFAULT_SLEEP_TIME_BETWEEN_TRYING, true);
-    }
-
     /**
      * @param microserviceName  registered service name. For example gateway
      * @param pathToApiResource URl path such as /users/all
      * @param sleepMilliseconds      sleep time if we can not resolve hostname of microservice
      * @param tryToReconnect    if we can not get hostname of microservice - fail immediately or sleep and try to get
+     * @param https    use http or https
      * @return URL to which make request
      * @throws CannotResolveHostException if can not get microservice name for microserviceName in service discovery
      */
-    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource, Integer sleepMilliseconds, Boolean tryToReconnect) {
+    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource, Integer sleepMilliseconds, Boolean tryToReconnect, boolean https) {
         ServiceInstance instance = null;
 
         boolean exitLoop = false;
@@ -78,8 +75,14 @@ public class MicroserviceHelper {
 
         }
 
-        URI storesUri = URI.create(String.format("http://%s:%s", instance.getHost(), instance.getPort()) + pathToApiResource);
-        return storesUri;
+        String prefix;
+        if (https){
+            prefix = "https://%s:%s";
+        }else{
+            prefix = "http://%s:%s";
+        }
+
+        return URI.create(String.format(prefix, instance.getHost(), instance.getPort()) + pathToApiResource);
     }
 
 }
