@@ -39,12 +39,6 @@ public class MicroserviceRequestMaker {
     public static final String METHOD_PARAMS = "METHOD_PARAMS";
 
     private static MicroserviceHelper microserviceHelper;
-    public final static ThreadLocal<Map<String, String>> httpHeadersThreadLocal = new ThreadLocal<Map<String, String>>() {
-        @Override
-        protected Map<String, String> initialValue() {
-            return new ConcurrentHashMap<>();
-        }
-    };
 
     private static boolean RETURN_NULL_ON_EMPTY_RESPONSE_BODY = true;
 
@@ -119,9 +113,6 @@ public class MicroserviceRequestMaker {
 
         try {
 
-            for (Map.Entry<String, String> entry : httpHeadersThreadLocal.get().entrySet()) {
-                httpHeaders.add(entry.getKey(), entry.getValue());
-            }
 
             // if payload not byte[] - use JSON as payload type
             if (!(payload instanceof byte[])) {
