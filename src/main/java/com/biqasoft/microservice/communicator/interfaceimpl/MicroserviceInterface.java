@@ -40,9 +40,9 @@ import java.util.concurrent.CompletableFuture;
  *         All Rights Reserved
  */
 @Component
-public class MicroserviceInterfaceImpFactory {
+public class MicroserviceInterface {
 
-    private static final Logger logger = LoggerFactory.getLogger(MicroserviceInterfaceImpFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(MicroserviceInterface.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final JsonNodeFactory factory = JsonNodeFactory.instance;
 
@@ -52,7 +52,8 @@ public class MicroserviceInterfaceImpFactory {
      * @param interfaceToExtend interface, annotated {@link Microservice}
      * @return object implemented interface
      */
-    public static Object create(Class<?> interfaceToExtend) {
+    @SuppressWarnings("unchecked") // Single-interface proxy creation guarded by parameter safety.
+    public static <T> T create(final Class<T> interfaceToExtend) {
         if (interfaceToExtend.isInterface()) {
 
             Annotation declaredAnnotation = interfaceToExtend.getDeclaredAnnotation(Microservice.class);
@@ -64,7 +65,7 @@ public class MicroserviceInterfaceImpFactory {
             extendInterfaces.add(interfaceToExtend); // new microservice class - will implement microservice interface
             extendInterfaces.addAll(Arrays.asList(interfaceToExtend.getInterfaces())); // implement interface that current interface class implement
 
-            Object extendedInterface = Enhancer.create(UserMicroserviceRequestSuperService.class, extendInterfaces.toArray(new Class[extendInterfaces.size()]), new MethodInterceptor() {
+            T extendedInterface = (T) Enhancer.create(UserMicroserviceRequestSuperService.class, extendInterfaces.toArray(new Class[extendInterfaces.size()]), new MethodInterceptor() {
                 @Override
                 public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
 
@@ -213,16 +214,10 @@ public class MicroserviceInterfaceImpFactory {
                         Map<String, Object> finalParam = param;
                         return CompletableFuture
                                 .supplyAsync(() -> {
-                                    Object result = MicroserviceRequestMaker.makeRequestToMicroservice(finalPayload, microserviceReturnType, restTemplate, returnGenericType, finalParam, httpHeaders);
-                                    result = MicroserviceRequestMaker.onBeforeReturnResultProcessor(result, finalPayload, microserviceReturnType, restTemplate, returnGenericType, finalParam);
-                                    return result;
+                                    return MicroserviceRequestMaker.makeRequestToMicroservice(finalPayload, microserviceReturnType, restTemplate, returnGenericType, finalParam, httpHeaders);
                                 });
                     } else {
-                        Object result = MicroserviceRequestMaker.makeRequestToMicroservice(payload, microserviceReturnType, restTemplate, returnGenericType, param, httpHeaders);
-                        result = MicroserviceRequestMaker.onBeforeReturnResultProcessor(result, payload, microserviceReturnType, restTemplate, returnGenericType, param);
-
-                        logger.debug("End microservice method {} in {}", method.getName(), o.toString());
-                        return result;
+                        return MicroserviceRequestMaker.makeRequestToMicroservice(payload, microserviceReturnType, restTemplate, returnGenericType, param, httpHeaders);
                     }
 
                 }

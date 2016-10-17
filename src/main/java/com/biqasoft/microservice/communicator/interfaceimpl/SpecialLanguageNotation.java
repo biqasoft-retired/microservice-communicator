@@ -31,7 +31,7 @@ public class SpecialLanguageNotation {
         return null;
     }
 
-    static void processSpecialLanguageNotation(MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall, Method method, Object o, SpecialLanguage specialLanguage) {
+    static void processSpecialLanguageNotation(MicroserviceInterface.CachedMicroserviceCall cachedMicroserviceCall, Method method, Object o, SpecialLanguage specialLanguage) {
         String methodName = method.getName();
 
         // russian language

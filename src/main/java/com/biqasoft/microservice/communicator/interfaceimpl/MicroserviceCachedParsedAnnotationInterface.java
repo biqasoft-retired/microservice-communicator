@@ -31,14 +31,14 @@ public class MicroserviceCachedParsedAnnotationInterface {
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceCachedParsedAnnotationInterface.class);
 
     // key - method#hashCode
-    private final static Map<Integer, MicroserviceInterfaceImpFactory.CachedMicroserviceCall> cachedMicroserviceCallMap = new ConcurrentHashMap<>();
+    private final static Map<Integer, MicroserviceInterface.CachedMicroserviceCall> cachedMicroserviceCallMap = new ConcurrentHashMap<>();
 
     /**
      * Get cached microservice information about REST endpoint
      * Used to avoid use a lot of reflection every method call
      */
-    static MicroserviceInterfaceImpFactory.CachedMicroserviceCall processMicroserviceSignature(Method method, Object o) {
-        MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall = cachedMicroserviceCallMap.get(method.hashCode());
+    static MicroserviceInterface.CachedMicroserviceCall processMicroserviceSignature(Method method, Object o) {
+        MicroserviceInterface.CachedMicroserviceCall cachedMicroserviceCall = cachedMicroserviceCallMap.get(method.hashCode());
 
         if (cachedMicroserviceCall != null) {
             return cachedMicroserviceCall;
@@ -51,10 +51,10 @@ public class MicroserviceCachedParsedAnnotationInterface {
      * We have not cached info about this method (REST endpoint)
      * So, calculate
      */
-    private static MicroserviceInterfaceImpFactory.CachedMicroserviceCall computeMicroserviceSignature(Method method, Object o) {
+    private static MicroserviceInterface.CachedMicroserviceCall computeMicroserviceSignature(Method method, Object o) {
         logger.info("Create microservice impl of method {}", method.getName());
 
-        MicroserviceInterfaceImpFactory.CachedMicroserviceCall cachedMicroserviceCall = new MicroserviceInterfaceImpFactory.CachedMicroserviceCall();
+        MicroserviceInterface.CachedMicroserviceCall cachedMicroserviceCall = new MicroserviceInterface.CachedMicroserviceCall();
         SpecialLanguageNotation.SpecialLanguage specialLanguage = SpecialLanguageNotation.isProcessSpecialLanguageNotation(method);
 
         MicroMapping microMapping = AnnotationUtils.findAnnotation(method, MicroMapping.class);

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
  *         All Rights Reserved
  */
 @Service
-public class SpringInjectorHelper {
+public class SpringContextAware {
 
     private static MicroserviceHelper microserviceHelper;
 
@@ -26,6 +26,6 @@ public class SpringInjectorHelper {
 
     @Autowired
     public void setMicroserviceHelper(MicroserviceHelper microserviceHelper) {
-        SpringInjectorHelper.microserviceHelper = microserviceHelper;
+        SpringContextAware.microserviceHelper = microserviceHelper;
     }
 }

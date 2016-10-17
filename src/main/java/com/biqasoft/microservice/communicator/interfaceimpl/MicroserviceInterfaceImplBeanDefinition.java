@@ -41,7 +41,7 @@ public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRe
             String interfaceClassName = component.getBeanClassName();
             try {
                 Class interfaceClass = Class.forName(interfaceClassName);
-                Object beanSignature = MicroserviceInterfaceImpFactory.create(interfaceClass);
+                Object beanSignature = MicroserviceInterface.create(interfaceClass);
                 objectMap.put(  interfaceClass.getName() , beanSignature);
                 logger.info("Find microservice interface {}", interfaceClassName);
             } catch (Exception e) {

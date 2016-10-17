@@ -50,7 +50,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
     private final Boolean tryToReconnect;
     private int triedTimes = 0;
 
-    boolean https;
+    private boolean https;
 
     // number of times to reconnect
     private final int tryToReconnectTimes;
@@ -105,7 +105,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
     }
 
     private URI getLoadBalanceUrlForMe() {
-        return SpringInjectorHelper.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect, https);
+        return SpringContextAware.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect, https);
     }
 
     private static List<MicroserviceRequestInterceptor> microserviceRequestInterceptors = null;

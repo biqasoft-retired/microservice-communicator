@@ -26,7 +26,8 @@ public interface MicroserviceRequestInterceptor {
    default void beforeRequest(MicroserviceRestTemplate restTemplate, URI uri){};
    default void afterRequest(MicroserviceRestTemplate restTemplate, HttpEntity<Object> request, ResponseEntity<byte[]> responseEntity, Class returnType, Class[] returnGenericType){};
 
-   // before execution async request. executed yet in same thread as main request
+   // If return is CompletableFuture - this is last interceptor before make request.
+   // executed yet in same thread as main request
    default void beforeProcessRequest(MicroserviceRestTemplate restTemplate, HttpHeaders httpHeaders){};
 
 
@@ -45,6 +46,6 @@ public interface MicroserviceRequestInterceptor {
     * @return object that interface will return
     */
    default Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType,
-                                       MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params){return originalObject;}
+                                       MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params){return modifiedObject;}
 
 }

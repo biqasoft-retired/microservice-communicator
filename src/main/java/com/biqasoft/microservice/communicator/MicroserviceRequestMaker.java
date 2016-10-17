@@ -3,12 +3,9 @@ package com.biqasoft.microservice.communicator;
 import com.biqasoft.microservice.communicator.exceptions.CannotResolveHostException;
 import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProcessingRequestException;
 import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
-import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceRequestInterceptor;
 import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceHelper;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +19,10 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -66,10 +65,10 @@ public class MicroserviceRequestMaker {
         MicroserviceRequestMaker.microserviceRequestInterceptors = microserviceRequestInterceptors;
     }
 
-    public static void beforeProcessRequest(MicroserviceRestTemplate restTemplate, HttpHeaders httpHeaders){
+    public static void beforeProcessRequest(MicroserviceRestTemplate restTemplate, HttpHeaders httpHeaders) {
         if (microserviceRequestInterceptors != null) {
             microserviceRequestInterceptors.forEach(x -> {
-                x.beforeProcessRequest(restTemplate,httpHeaders);
+                x.beforeProcessRequest(restTemplate, httpHeaders);
             });
         }
     }
@@ -77,12 +76,12 @@ public class MicroserviceRequestMaker {
     /**
      * Allow modify request before return from interface
      *
-     * @param returnObjectOriginal    original(default) object from internal request processing
-     * @param payload           request payload
-     * @param returnType        return type in interface
-     * @param restTemplate      request microserviceRestTemplate
-     * @param returnGenericType return types generic info
-     * @param params            additional params
+     * @param returnObjectOriginal original(default) object from internal request processing
+     * @param payload              request payload
+     * @param returnType           return type in interface
+     * @param restTemplate         request microserviceRestTemplate
+     * @param returnGenericType    return types generic info
+     * @param params               additional params
      * @return object that we want to return. object that interface will return
      */
     public static Object onBeforeReturnResultProcessor(Object returnObjectOriginal, Object payload, Class returnType,
@@ -100,11 +99,11 @@ public class MicroserviceRequestMaker {
     }
 
     /**
-     * @param restTemplate           rest template
+     * @param restTemplate      rest template
      * @param payload           object that will be send in HTTP POST and PUT methods
      * @param returnType        java return type in interface. If generic - collection
      * @param returnGenericType null if return type is not generic
-     * @param httpHeaders http headers
+     * @param httpHeaders       http headers
      * @return response from server depend on interface return method or null if remote server has not response body
      */
     public static Object makeRequestToMicroservice(Object payload, Class returnType, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params,
@@ -171,71 +170,28 @@ public class MicroserviceRequestMaker {
                 return Void.TYPE;
             }
 
-            if (returnType.equals(Optional.class)) {
-                if (!responseEntity.hasBody()) {
-                    return Optional.empty();
-                }
-
-                Object object;
-
-                if (Collection.class.isAssignableFrom(returnGenericType[0])) {
-                    JavaType type = objectMapper.getTypeFactory().constructCollectionType(returnGenericType[0], returnGenericType[1]);
-                    object = objectMapper.readValue(responseEntity.getBody(), type);
-                } else {
-                    object = objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]);
-                }
-
-                return Optional.of(object);
-            }
-
-            if (!responseEntity.hasBody() && RETURN_NULL_ON_EMPTY_RESPONSE_BODY && !returnType.equals(ResponseEntity.class)) {
-                return null;
-            }
-
-            if (returnType.equals(CompletableFuture.class)) {
-                if (returnGenericType.length == 0) {
-                    return Void.TYPE;
-                }
-
-                if (Collection.class.isAssignableFrom(returnGenericType[0])) {
-                    JavaType type = objectMapper.getTypeFactory().constructCollectionType(returnGenericType[0], returnGenericType[1]);
-                    return objectMapper.readValue(responseEntity.getBody(), type);
-                }
-                return objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]);
-            }
-
             // if we request byte[] return immediately
             if (returnType.equals(byte[].class)) {
                 return responseEntity.getBody();
             }
 
-            if (returnGenericType == null) {
-                return objectMapper.readValue(responseEntity.getBody(), returnType);
-            } else {
-                // return ResponseEntity<>
-                if (returnType.equals(ResponseEntity.class)) {
-                    if (!responseEntity.hasBody()) {
-                        return responseEntity;
-                    }
-                    ReflectionUtils.setField(body, responseEntity, objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]));
+            // return ResponseEntity<>
+            if (returnType.equals(ResponseEntity.class)) {
+                if (!responseEntity.hasBody()) {
                     return responseEntity;
                 }
-
-                if (returnType.equals(Map.class) && returnGenericType.length == 2 && returnGenericType[0].equals(String.class) && returnGenericType[1].equals(Object.class)) {
-                    if (params != null && Boolean.TRUE.equals(params.get("convertResponseToMap"))) {
-                        JsonNode jsonNode = objectMapper.readTree(responseEntity.getBody());
-                        return objectMapper.convertValue(jsonNode, Map.class);
-                    }
-                }
-
-                // return List<>
-                if (Collection.class.isAssignableFrom(returnType)) {
-                    JavaType type = objectMapper.getTypeFactory().constructCollectionType(returnType, returnGenericType[0]);
-                    return objectMapper.readValue(responseEntity.getBody(), type);
-                }
+                ReflectionUtils.setField(body, responseEntity, objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]));
+                return responseEntity;
             }
 
-            throw new InvalidStateException("Internal error processing. Retry later"); // invalid @annotation
+
+            Object o = MicroserviceRequestMaker.onBeforeReturnResultProcessor(responseEntity.getBody(), payload, returnType, restTemplate, returnGenericType, params);
+
+            if (o == null & !responseEntity.hasBody() && RETURN_NULL_ON_EMPTY_RESPONSE_BODY && !returnType.equals(ResponseEntity.class)) {
+                return null;
+            }
+
+            return o;
 
         } catch (Throwable e) {
             if (params != null) {
@@ -271,7 +227,7 @@ public class MicroserviceRequestMaker {
 
         Object defaultInterfaceProxy = defaultObjectImplProxy.computeIfAbsent(interfaceToExtend.toString(),
                 x -> Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                new Class[]{interfaceToExtend}, (Object proxy2, Method method2, Object[] arguments2) -> null));
+                        new Class[]{interfaceToExtend}, (Object proxy2, Method method2, Object[] arguments2) -> null));
 
         try {
             Method defaultJava8Method = interfaceToExtend.getMethod(method.getName(), method.getParameterTypes());
