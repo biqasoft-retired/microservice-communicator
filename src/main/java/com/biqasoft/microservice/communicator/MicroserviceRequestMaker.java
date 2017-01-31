@@ -99,20 +99,18 @@ public class MicroserviceRequestMaker {
     }
 
     /**
-     * @param restTemplate      rest template
+     * @param requestTemplate      rest template
      * @param payload           object that will be send in HTTP POST and PUT methods
      * @param returnType        java return type in interface. If generic - collection
      * @param returnGenericType null if return type is not generic
      * @param httpHeaders       http headers
      * @return response from server depend on interface return method or null if remote server has not response body
      */
-    public static Object makeRequestToMicroservice(Object payload, Class returnType, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params,
+    public static Object makeRequestToMicroservice(Object payload, Class returnType, MicroserviceRestTemplate requestTemplate, Class[] returnGenericType, Map<String, Object> params,
                                                    HttpHeaders httpHeaders) {
-        HttpMethod httpMethod = restTemplate.getMethod();
+        HttpMethod httpMethod = requestTemplate.getMethod();
 
         try {
-
-
             // if payload not byte[] - use JSON as payload type
             if (!(payload instanceof byte[])) {
                 httpHeaders.setContentType(MediaType.APPLICATION_JSON);
@@ -120,7 +118,7 @@ public class MicroserviceRequestMaker {
 
             if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.beforeCreateHttpEntity(restTemplate, returnType, returnGenericType, httpHeaders);
+                    x.beforeCreateHttpEntity(requestTemplate, returnType, returnGenericType, httpHeaders);
                 });
             }
 
@@ -134,7 +132,7 @@ public class MicroserviceRequestMaker {
             ResponseEntity<byte[]> responseEntity;
             try {
                 // get all responses as byte[] and if we request object - deserialize then
-                responseEntity = restTemplate.exchange(null, restTemplate.getMethod(), request, byte[].class);
+                responseEntity = requestTemplate.exchange(null, requestTemplate.getMethod(), request, byte[].class);
             } catch (InvalidRequestException e) {
 
                 if (returnType.equals(ResponseEntity.class)) {
@@ -159,11 +157,11 @@ public class MicroserviceRequestMaker {
 
             if (microserviceRequestInterceptors != null) {
                 microserviceRequestInterceptors.forEach(x -> {
-                    x.afterRequest(restTemplate, request, responseEntity, returnType, returnGenericType);
+                    x.afterRequest(requestTemplate, request, responseEntity, returnType, returnGenericType);
                 });
             }
 
-            logger.debug("Request to microservice {}", restTemplate.getLastURI().toString());
+            logger.debug("Request to microservice {}", requestTemplate.getLastURI().toString());
 
             // if we have void in interface as return - return void
             if (returnType.equals(Void.TYPE)) {
@@ -185,7 +183,7 @@ public class MicroserviceRequestMaker {
             }
 
 
-            Object o = MicroserviceRequestMaker.onBeforeReturnResultProcessor(responseEntity.getBody(), payload, returnType, restTemplate, returnGenericType, params);
+            Object o = MicroserviceRequestMaker.onBeforeReturnResultProcessor(responseEntity.getBody(), payload, returnType, requestTemplate, returnGenericType, params);
 
             if (o == null & !responseEntity.hasBody() && RETURN_NULL_ON_EMPTY_RESPONSE_BODY && !returnType.equals(ResponseEntity.class)) {
                 return null;
@@ -209,7 +207,7 @@ public class MicroserviceRequestMaker {
                 logger.error(e.getMessage(), e);
             }
 
-            logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), restTemplate.getLastURI() == null ? "NULL_URL" : restTemplate.getLastURI().toString(), e);
+            logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), requestTemplate.getLastURI() == null ? "NULL_URL" : requestTemplate.getLastURI().toString(), e);
             throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");
         }
     }

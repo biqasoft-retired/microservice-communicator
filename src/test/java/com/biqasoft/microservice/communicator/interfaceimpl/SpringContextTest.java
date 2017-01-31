@@ -1,6 +1,6 @@
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
-import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
  *         Date: 7/25/2016
  *         All Rights Reserved
  */
-@SpringApplicationConfiguration(classes = StartApplicationTest.class)
+@SpringBootTest(classes = StartApplicationTest.class)
 @WebAppConfiguration
 @Test(suiteName = "microserviceCommunicationInterface")
 @ActiveProfiles({"development", "test"})

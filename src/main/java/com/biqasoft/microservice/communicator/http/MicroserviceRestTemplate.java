@@ -64,11 +64,13 @@ public class MicroserviceRestTemplate extends RestTemplate {
     private static List<HttpMessageConverter<?>> messageConverters;
     private static HttpComponentsClientHttpRequestFactory httpComponentsClientHttpRequestFactory;
     static {
+        // init default bad response codes
         defaultInvalidRequestStatusCode = new HashSet<>();
         defaultInvalidRequestStatusCode.add(422); // unprocessable entity
         defaultInvalidRequestStatusCode.add(401); // unauthorized
         defaultInvalidRequestStatusCode.add(403); // access denied
 
+        // default converters
         httpComponentsClientHttpRequestFactory = new HttpComponentsClientHttpRequestFactory();
         messageConverters = new ArrayList<>();
         messageConverters.add(new ByteArrayHttpMessageConverter());
@@ -105,6 +107,12 @@ public class MicroserviceRestTemplate extends RestTemplate {
     }
 
     private URI getLoadBalanceUrlForMe() {
+        // allow to use just as http rest client
+        if (microserviceName.startsWith("http://") || microserviceName.startsWith("https://")){
+            return URI.create(microserviceName + pathToApiResource);
+        }
+
+        // use load-balancer
         return SpringContextAware.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect, https);
     }
 

@@ -1,10 +1,7 @@
 package com.biqasoft.microservice.communicator.interfaceimpl;
 
 
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroMapping;
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPathVar;
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPayloadVar;
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.*;
 import com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.http.HttpMethod;
@@ -111,6 +108,9 @@ public interface MicroserviceUsersRepository {
 
     @MicroMapping("/domain/users/mock/null")
     Optional<UserAccount> returnSingleOptionalEmptyObject();
+
+    @MicroMapping("/domain/users/mock/authorization_header")
+    JsonNode sendAuthHeaderInEcho(@MicroHeader("Authorization") String authHeader);
 
     // default will be executed on error main request
     @MicroMapping("/domain/users/mock/generate_500_http_error")

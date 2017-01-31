@@ -51,8 +51,8 @@ public class MicroserviceCachedParsedAnnotationInterface {
      * We have not cached info about this method (REST endpoint)
      * So, calculate
      */
-    private static MicroserviceInterface.CachedMicroserviceCall computeMicroserviceSignature(Method method, Object o) {
-        logger.info("Create microservice impl of method {}", method.getName());
+    private synchronized static MicroserviceInterface.CachedMicroserviceCall computeMicroserviceSignature(Method method, Object o) {
+        logger.debug("Create microservice impl of method {}", method.getName());
 
         MicroserviceInterface.CachedMicroserviceCall cachedMicroserviceCall = new MicroserviceInterface.CachedMicroserviceCall();
         SpecialLanguageNotation.SpecialLanguage specialLanguage = SpecialLanguageNotation.isProcessSpecialLanguageNotation(method);

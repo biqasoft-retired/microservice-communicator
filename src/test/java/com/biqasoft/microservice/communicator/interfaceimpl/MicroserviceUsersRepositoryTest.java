@@ -61,7 +61,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     public void testReturnSingleOptionalObject() throws Exception {
         Optional<UserAccount> userAccount = microserviceUsersRepository.returnSingleOptionalObject();
         Assert.assertNotNull(userAccount);
-        Assert.assertTrue(userAccount.isPresent() );
+        Assert.assertTrue(userAccount.isPresent());
         Assert.assertNotNull(userAccount.get());
         Assert.assertNotNull(userAccount.get().getId());
     }
@@ -71,7 +71,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Optional<List<UserAccount>> userAccounts = microserviceUsersRepository.returnListOptionalObject();
 
         Assert.assertNotNull(userAccounts);
-        Assert.assertTrue(userAccounts.isPresent() );
+        Assert.assertTrue(userAccounts.isPresent());
         Assert.assertNotNull(userAccounts.get());
         Assert.assertTrue(userAccounts.get().size() > 0);
         Assert.assertNotNull(userAccounts.get().get(0).getId());
@@ -82,8 +82,16 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         Optional<UserAccount> userAccount = microserviceUsersRepository.returnSingleOptionalEmptyObject();
 
         Assert.assertNotNull(userAccount);
-        Assert.assertFalse(userAccount.isPresent() );
+        Assert.assertFalse(userAccount.isPresent());
         userAccount.get();
+    }
+
+    @Test
+    public void testHeader() throws Exception {
+        String headerValue = "some_magic_string_header";
+        JsonNode response = microserviceUsersRepository.sendAuthHeaderInEcho(headerValue);
+
+        Assert.assertEquals(response.path("header").asText(), headerValue);
     }
 
     @Test
@@ -212,15 +220,16 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
 
     /**
      * Assert that we call every time default method implementation with arguments
+     *
      * @throws Throwable test error
      */
     @Test(invocationCount = 3)
     public void testReturnDefaultValueWithParam() throws Throwable {
-        this.executedDefaultInterfaceTimes ++;
+        this.executedDefaultInterfaceTimes++;
         String returnDefault = "I'm default Java 8 interface" + this.executedDefaultInterfaceTimes;
 
         UserAccount userAccount = microserviceUsersRepository.returnDefaultValue(returnDefault);
-        Assert.assertEquals(userAccount.getId(), returnDefault );
+        Assert.assertEquals(userAccount.getId(), returnDefault);
     }
 
     @Test
@@ -304,7 +313,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
         MicroserviceRequestInterceptor microserviceRequestInterceptor = new MicroserviceRequestInterceptor() {
             @Override
             public Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
-                if (modifiedObject instanceof UserAccount){
+                if (modifiedObject instanceof UserAccount) {
                     ((UserAccount) modifiedObject).setId("MODIFIED ID");
                 }
                 return modifiedObject;
@@ -327,10 +336,10 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     public void testManyRequests() throws Exception {
         final int capacity = 30_000;
 
-        ScheduledThreadPoolExecutor threadPoolExecutor  = new ScheduledThreadPoolExecutor(capacity/10);
+        ScheduledThreadPoolExecutor threadPoolExecutor = new ScheduledThreadPoolExecutor(capacity / 10);
         List<Callable<UserAccount>> lists = new ArrayList<>();
 
-        for (int i=0; i < capacity; i++){
+        for (int i = 0; i < capacity; i++) {
             int finalI = i;
             lists.add(() -> {
                 logger.info("I'm {}", finalI);
@@ -352,7 +361,7 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
 
         thread.start();
 
-        while (threadPoolExecutor.getCompletedTaskCount() == 0 || threadPoolExecutor.getActiveCount() > 0){
+        while (threadPoolExecutor.getCompletedTaskCount() == 0 || threadPoolExecutor.getActiveCount() > 0) {
             logger.info("executed={} tasks={}", threadPoolExecutor.getActiveCount(), threadPoolExecutor.getTaskCount());
             Thread.sleep(300);
         }

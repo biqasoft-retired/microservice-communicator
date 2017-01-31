@@ -8,6 +8,7 @@ import com.biqasoft.microservice.communicator.MicroserviceRequestMaker;
 import com.biqasoft.microservice.communicator.exceptions.InvalidStateException;
 import com.biqasoft.microservice.communicator.http.HttpClientsHelpers;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
+import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroHeader;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPathVar;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPayloadVar;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
@@ -21,7 +22,8 @@ import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -96,7 +98,7 @@ public class MicroserviceInterface {
                     // number of params in interface for bound to URL
                     int paramsForMappingUrl = 0;
 
-                    if (!StringUtils.isEmpty(basePath)){
+                    if (!StringUtils.isEmpty(basePath)) {
                         annotatedPath = basePath + annotatedPath;
                     }
 
@@ -207,6 +209,22 @@ public class MicroserviceInterface {
                     }
 
                     HttpHeaders httpHeaders = new HttpHeaders();
+
+                    for (Parameter parameter : parameters) {
+                        if (!(parameter.getType().equals(String.class))) {
+                            continue;
+                        }
+                        MicroHeader paramHeader = AnnotationUtils.findAnnotation(parameter, MicroHeader.class);
+
+                        if (paramHeader != null) {
+                            String headerName = paramHeader.value();
+                            if (!StringUtils.isEmpty(headerName)) {
+                                String headerValue = (String) objects[parameters.indexOf(parameter)];
+                                httpHeaders.add(headerName, headerValue);
+                            }
+                        }
+                    }
+
                     MicroserviceRequestMaker.beforeProcessRequest(restTemplate, httpHeaders);
 
                     if (microserviceReturnType.equals(CompletableFuture.class)) {
