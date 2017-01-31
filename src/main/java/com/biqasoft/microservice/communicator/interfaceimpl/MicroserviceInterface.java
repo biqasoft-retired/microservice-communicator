@@ -72,7 +72,7 @@ public class MicroserviceInterface {
                 public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
 
                     // do not proxy toString and hashCode - invoke super class methods
-                    if (method.getName().equals("toString") || method.getName().equals("hashCode")) {
+                    if (method.getName().equals("toString") || method.getName().equals("hashCode") || method.getName().equals("equals")) {
                         return methodProxy.invokeSuper(o, objects);
                     }
                     logger.debug("Start microservice method {} in {}", method.getName(), o.toString());
@@ -102,10 +102,21 @@ public class MicroserviceInterface {
                         annotatedPath = basePath + annotatedPath;
                     }
 
+                    HttpHeaders httpHeaders = new HttpHeaders();
+
                     // replace {} in annotated URL
                     for (Parameter parameter : parameters) {
-                        if (!(parameter.getType().equals(String.class))) {
-                            continue;
+                        MicroHeader paramHeader = AnnotationUtils.findAnnotation(parameter, MicroHeader.class);
+                        if (paramHeader != null) {
+                            if (!(parameter.getType().equals(String.class))) {
+                                continue;
+                            }
+                            String headerName = paramHeader.value();
+                            if (!StringUtils.isEmpty(headerName)) {
+                                String headerValue = (String) objects[parameters.indexOf(parameter)];
+                                httpHeaders.add(headerName, headerValue);
+                                paramsForMappingUrl++;
+                            }
                         }
 
                         MicroPathVar param = AnnotationUtils.findAnnotation(parameter, MicroPathVar.class);
@@ -113,9 +124,17 @@ public class MicroserviceInterface {
                             continue;
                         }
 
+                        // process PathVar
+                        if (!(parameter.getType().equals(String.class))) {
+                            continue;
+                        }
+
                         if (!StringUtils.isEmpty(param.param())) {
                             String paramValue = (String) objects[parameters.indexOf(parameter)];
-                            paramValue = URLEncoder.encode(paramValue, "UTF-8");
+
+                            if (param.encode()){
+                                paramValue = URLEncoder.encode(paramValue, "UTF-8");
+                            }
 
                             annotatedPath = annotatedPath.replace("{" + param.param() + "}", paramValue);
                             paramsForMappingUrl++;
@@ -206,23 +225,6 @@ public class MicroserviceInterface {
                         param.put(MicroserviceRequestMaker.DEFAULT_INTERFACE_PROXY_METHOD, method);
                         param.put(MicroserviceRequestMaker.INTERFACE_IMPLEMENTED, interfaceToExtend);
                         param.put(MicroserviceRequestMaker.METHOD_PARAMS, objects);
-                    }
-
-                    HttpHeaders httpHeaders = new HttpHeaders();
-
-                    for (Parameter parameter : parameters) {
-                        if (!(parameter.getType().equals(String.class))) {
-                            continue;
-                        }
-                        MicroHeader paramHeader = AnnotationUtils.findAnnotation(parameter, MicroHeader.class);
-
-                        if (paramHeader != null) {
-                            String headerName = paramHeader.value();
-                            if (!StringUtils.isEmpty(headerName)) {
-                                String headerValue = (String) objects[parameters.indexOf(parameter)];
-                                httpHeaders.add(headerName, headerValue);
-                            }
-                        }
                     }
 
                     MicroserviceRequestMaker.beforeProcessRequest(restTemplate, httpHeaders);

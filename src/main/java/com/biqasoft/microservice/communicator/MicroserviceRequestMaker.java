@@ -14,6 +14,7 @@ import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
@@ -99,7 +100,7 @@ public class MicroserviceRequestMaker {
     }
 
     /**
-     * @param requestTemplate      rest template
+     * @param requestTemplate   rest template
      * @param payload           object that will be send in HTTP POST and PUT methods
      * @param returnType        java return type in interface. If generic - collection
      * @param returnGenericType null if return type is not generic
@@ -112,7 +113,7 @@ public class MicroserviceRequestMaker {
 
         try {
             // if payload not byte[] - use JSON as payload type
-            if (!(payload instanceof byte[])) {
+            if (!(payload instanceof byte[]) && StringUtils.isEmpty(httpHeaders.get("Content-Type"))) {
                 httpHeaders.setContentType(MediaType.APPLICATION_JSON);
             }
 
@@ -178,6 +179,12 @@ public class MicroserviceRequestMaker {
                 if (!responseEntity.hasBody()) {
                     return responseEntity;
                 }
+
+                if (returnGenericType == null || returnGenericType[0] == null || returnGenericType[0].equals(byte[].class)) {
+                    return responseEntity;
+                }
+
+                // try to replace response[] with generic response body
                 ReflectionUtils.setField(body, responseEntity, objectMapper.readValue(responseEntity.getBody(), returnGenericType[0]));
                 return responseEntity;
             }

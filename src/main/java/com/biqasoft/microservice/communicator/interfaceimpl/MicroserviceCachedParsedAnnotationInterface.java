@@ -112,7 +112,11 @@ public class MicroserviceCachedParsedAnnotationInterface {
                                 returnGenericType[i + 1] = Class.forName(typeBindings2.getBoundType(0).getFullName());
                             }
                         } else {
-                            returnGenericType[i] = Class.forName(boundType.getTypeName());
+                            if (boundType.getTypeName().equals("byte[]")){
+                                returnGenericType[i] = Class.forName("[B");
+                            }else{
+                                returnGenericType[i] = Class.forName(boundType.getTypeName());
+                            }
                         }
                     }
                 }

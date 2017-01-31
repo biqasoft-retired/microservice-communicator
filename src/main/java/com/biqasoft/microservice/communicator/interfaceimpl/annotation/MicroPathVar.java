@@ -28,4 +28,6 @@ public @interface MicroPathVar {
     @AliasFor("value")
     String param() default "";
 
+    boolean encode() default true;
+
 }

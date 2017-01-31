@@ -15,9 +15,11 @@ import org.springframework.http.client.ClientHttpRequest;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestClientException;
@@ -75,6 +77,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
         messageConverters = new ArrayList<>();
         messageConverters.add(new ByteArrayHttpMessageConverter());
         messageConverters.add(new MappingJackson2HttpMessageConverter());
+        messageConverters.add(new FormHttpMessageConverter());
     }
 
     private static ResponseErrorHandler responseErrorHandler = new ResponseErrorHandler();
@@ -110,6 +113,11 @@ public class MicroserviceRestTemplate extends RestTemplate {
         // allow to use just as http rest client
         if (microserviceName.startsWith("http://") || microserviceName.startsWith("https://")){
             return URI.create(microserviceName + pathToApiResource);
+        }
+
+        // use pathToApiResource as full url
+        if (StringUtils.isEmpty(microserviceName) && (pathToApiResource.startsWith("http://") || pathToApiResource.startsWith("https://"))){
+            return URI.create(pathToApiResource);
         }
 
         // use load-balancer
