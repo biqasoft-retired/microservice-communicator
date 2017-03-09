@@ -187,6 +187,7 @@ public class ServiceDiscoveryConfiguration {
 ## Demo
  - [demo server, used for tests](https://github.com/biqasoft/microservice-communicator-demo-server)
  - [MicroserviceUsersRepositoryTest](https://github.com/biqasoft/microservice-communicator/blob/master/src/test/java/com/biqasoft/microservice/communicator/interfaceimpl/MicroserviceUsersRepositoryTest.java) - test interface usage
+ - [usage by another project](https://github.com/biqasoft/bindings-java/tree/master/authmicroservicecommunication/src/main/java/com.biqasoft/microservice.common)
 
 ## Exceptions
 If you have return type `ResponseEntity` you will never have exceptions from method. For example with `responseEntity.getStatusCode().is2xxSuccessful()`.
