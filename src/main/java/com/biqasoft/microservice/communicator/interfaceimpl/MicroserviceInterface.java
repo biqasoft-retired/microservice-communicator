@@ -12,6 +12,7 @@ import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroHead
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPathVar;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPayloadVar;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -45,8 +46,15 @@ import java.util.concurrent.CompletableFuture;
 public class MicroserviceInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceInterface.class);
-    private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final JsonNodeFactory factory = JsonNodeFactory.instance;
+
+    private static final ObjectMapper objectMapper;
+
+    static {
+        objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
+
 
     /**
      * Create microservice implementation
