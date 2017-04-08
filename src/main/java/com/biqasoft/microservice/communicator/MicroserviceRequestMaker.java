@@ -6,7 +6,6 @@ import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceRequestInterceptor;
 import com.biqasoft.microservice.communicator.internal.DefaultReturnValueService;
-import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceLoadBalancer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,8 +39,6 @@ public class MicroserviceRequestMaker {
     public static final String INTERFACE_IMPLEMENTED = "INTERFACE_IMPLEMENTED";
     public static final String METHOD_PARAMS = "METHOD_PARAMS";
 
-    private static MicroserviceLoadBalancer microserviceLoadBalancer;
-
     private static boolean printStacktraceOnFailed = false;
     private static boolean RETURN_NULL_ON_EMPTY_RESPONSE_BODY = true;
 
@@ -60,12 +57,11 @@ public class MicroserviceRequestMaker {
     }
 
     @Autowired
-    public MicroserviceRequestMaker(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper, MicroserviceLoadBalancer microserviceLoadBalancer,
+    public MicroserviceRequestMaker(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper,
                                     @Value("${biqa.microservice.communicator.error.printstacktrace:false}") boolean printStacktraceOnFailed,
                                     @Value("${biqa.microservice.communicator.response.empty.null:true}") boolean nullOnEmptyResponseBody,
                                     DefaultReturnValueService defaultReturnValueService) {
         MicroserviceRequestMaker.objectMapper = objectMapper;
-        MicroserviceRequestMaker.microserviceLoadBalancer = microserviceLoadBalancer;
         MicroserviceRequestMaker.printStacktraceOnFailed = printStacktraceOnFailed;
         MicroserviceRequestMaker.defaultReturnValueService = defaultReturnValueService;
         MicroserviceRequestMaker.RETURN_NULL_ON_EMPTY_RESPONSE_BODY = nullOnEmptyResponseBody;
@@ -114,6 +110,7 @@ public class MicroserviceRequestMaker {
      * @param payload           object that will be send in HTTP POST and PUT methods
      * @param returnType        java return type in interface. If generic - collection
      * @param returnGenericType null if return type is not generic
+     * @param params custom params
      * @param httpHeaders       http headers
      * @return response from server depend on interface return method or null if remote server has not response body
      */

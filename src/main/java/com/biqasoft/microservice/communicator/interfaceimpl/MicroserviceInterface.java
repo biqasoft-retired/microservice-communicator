@@ -52,6 +52,7 @@ public class MicroserviceInterface {
     /**
      * Create microservice implementation
      *
+     * @param <T> interface type to implement
      * @param interfaceToExtend interface, annotated {@link Microservice}
      * @return object implemented interface
      */

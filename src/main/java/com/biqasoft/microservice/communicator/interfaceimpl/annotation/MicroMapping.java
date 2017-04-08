@@ -35,21 +35,21 @@ public @interface MicroMapping {
     HttpMethod method() default HttpMethod.GET;
 
     /**
-     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String, HttpMethod, boolean)}
+     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(boolean, int, int, String, String, HttpMethod, boolean)}
      *
      * @return true if try to reconnect to service on error
      */
     boolean tryToReconnect() default true;
 
     /**
-     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String, HttpMethod, boolean)}
+     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(boolean, int, int, String, String, HttpMethod, boolean)}
      *
      * @return number of tries to reconnect
      */
     int tryToReconnectTimes() default 2;
 
     /**
-     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(Boolean, int, int, String, String, HttpMethod, boolean)}
+     * see {@link com.biqasoft.microservice.communicator.http.HttpClientsHelpers#getRestTemplate(boolean, int, int, String, String, HttpMethod, boolean)}
      * @return millisecond between trying
      */
     int sleepTimeBetweenTrying() default 1100;
