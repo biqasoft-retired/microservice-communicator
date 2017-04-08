@@ -5,18 +5,24 @@ import com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceRequestI
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Map;
 
 /**
+ * process return type for return type json objects
  * Created by Nikita on 10/17/2016.
  */
 @Component
 public class JsonAdapter implements MicroserviceRequestInterceptor {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    public JsonAdapter(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {

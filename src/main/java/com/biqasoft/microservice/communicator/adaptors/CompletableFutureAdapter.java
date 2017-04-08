@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -14,13 +16,20 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * Process return type {@link CompletableFuture}
+ *
  * Created by Nikita on 10/17/2016.
  */
 @Component
 public class CompletableFutureAdapter implements MicroserviceRequestInterceptor {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private static final Logger logger = LoggerFactory.getLogger(CompletableFutureAdapter.class);
+
+    @Autowired
+    public CompletableFutureAdapter(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public Object onBeforeReturnResult(Object modifiedObject, Object originalObject, Object payload, Class returnType, MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {

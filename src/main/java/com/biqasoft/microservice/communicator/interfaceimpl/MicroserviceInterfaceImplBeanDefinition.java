@@ -23,6 +23,10 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 
 /**
+ * Start class
+ *
+ * Scan classpath, create interface implementation and add to BeanDefinitionRegistryPostProcessor
+ *
  * @author Nikita Bakaev, ya@nbakaev.ru
  *         Date: 7/15/2016
  *         All Rights Reserved
@@ -40,7 +44,7 @@ public class MicroserviceInterfaceImplBeanDefinition implements BeanDefinitionRe
         for (BeanDefinition component : components) {
             String interfaceClassName = component.getBeanClassName();
             try {
-                Class interfaceClass = Class.forName(interfaceClassName);
+                Class<?> interfaceClass = Class.forName(interfaceClassName);
                 Object beanSignature = MicroserviceInterface.create(interfaceClass);
                 objectMap.put(  interfaceClass.getName() , beanSignature);
                 logger.debug("Find microservice interface {}", interfaceClassName);

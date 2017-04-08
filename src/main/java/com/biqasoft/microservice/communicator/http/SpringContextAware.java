@@ -4,7 +4,7 @@
 
 package com.biqasoft.microservice.communicator.http;
 
-import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceHelper;
+import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceLoadBalancer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,14 +18,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class SpringContextAware {
 
-    private static MicroserviceHelper microserviceHelper;
+    private static MicroserviceLoadBalancer microserviceLoadBalancer;
 
-    public static MicroserviceHelper getMicroserviceHelper() {
-        return microserviceHelper;
+    public static MicroserviceLoadBalancer getMicroserviceLoadBalancer() {
+        return microserviceLoadBalancer;
     }
 
     @Autowired
-    public void setMicroserviceHelper(MicroserviceHelper microserviceHelper) {
-        SpringContextAware.microserviceHelper = microserviceHelper;
+    public void setMicroserviceHelper(MicroserviceLoadBalancer microserviceLoadBalancer) {
+        SpringContextAware.microserviceLoadBalancer = microserviceLoadBalancer;
     }
 }

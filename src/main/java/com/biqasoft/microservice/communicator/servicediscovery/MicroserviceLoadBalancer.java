@@ -19,12 +19,12 @@ import java.net.URI;
  * All Rights Reserved
  */
 @Service
-public class MicroserviceHelper {
+public class MicroserviceLoadBalancer {
 
     @Autowired
     private LoadBalancerClient loadBalancerClient;
 
-    private static final Logger logger = LoggerFactory.getLogger(MicroserviceHelper.class);
+    private static final Logger logger = LoggerFactory.getLogger(MicroserviceLoadBalancer.class);
 
     private final int FAIL_AFTER_UNSUCCESS_TIMES = 4;
     private final int DEFAULT_SLEEP_TIME_BETWEEN_TRYING = 1200;
@@ -38,7 +38,7 @@ public class MicroserviceHelper {
      * @return URL to which make request
      * @throws CannotResolveHostException if can not get microservice name for microserviceName in service discovery
      */
-    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource, Integer sleepMilliseconds, Boolean tryToReconnect, boolean https) {
+    public URI getLoadBalancedURIByMicroservice(String microserviceName, String pathToApiResource, Integer sleepMilliseconds, boolean tryToReconnect, boolean https) {
         ServiceInstance instance = null;
 
         boolean exitLoop = false;
@@ -52,7 +52,7 @@ public class MicroserviceHelper {
                 exitLoop = true;
             } else {
 
-                if (tryToReconnect == null || !tryToReconnect) {
+                if (!tryToReconnect) {
                     exitLoop = true;
                 }
 

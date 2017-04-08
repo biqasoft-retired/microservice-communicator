@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
+ * Process return type {@link Optional}
+ *
  * Created by Nikita on 10/17/2016.
  */
 @Component

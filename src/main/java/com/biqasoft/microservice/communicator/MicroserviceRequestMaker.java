@@ -5,26 +5,25 @@ import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProce
 import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceRequestInterceptor;
-import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceHelper;
+import com.biqasoft.microservice.communicator.internal.DefaultReturnValueService;
+import com.biqasoft.microservice.communicator.servicediscovery.MicroserviceLoadBalancer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by Nikita on 21.08.2016.
@@ -32,18 +31,24 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class MicroserviceRequestMaker {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static ObjectMapper objectMapper;
+    private static DefaultReturnValueService defaultReturnValueService;
+
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceRequestMaker.class);
+
     public static final String DEFAULT_INTERFACE_PROXY_METHOD = "DEFAULT_INTERFACE_PROXY_METHOD";
     public static final String INTERFACE_IMPLEMENTED = "INTERFACE_IMPLEMENTED";
     public static final String METHOD_PARAMS = "METHOD_PARAMS";
 
-    private static MicroserviceHelper microserviceHelper;
+    private static MicroserviceLoadBalancer microserviceLoadBalancer;
 
+    private static boolean printStacktraceOnFailed = false;
     private static boolean RETURN_NULL_ON_EMPTY_RESPONSE_BODY = true;
 
     // static field for ResponseEntity<>
     public static Field body = null;
+
+    private static List<MicroserviceRequestInterceptor> microserviceRequestInterceptors = null;
 
     static {
         try {
@@ -55,11 +60,16 @@ public class MicroserviceRequestMaker {
     }
 
     @Autowired
-    public void setMicroserviceHelper(MicroserviceHelper microserviceHelper) {
-        MicroserviceRequestMaker.microserviceHelper = microserviceHelper;
+    public MicroserviceRequestMaker(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper, MicroserviceLoadBalancer microserviceLoadBalancer,
+                                    @Value("${biqa.microservice.communicator.error.printstacktrace:false}") boolean printStacktraceOnFailed,
+                                    @Value("${biqa.microservice.communicator.response.empty.null:true}") boolean nullOnEmptyResponseBody,
+                                    DefaultReturnValueService defaultReturnValueService) {
+        MicroserviceRequestMaker.objectMapper = objectMapper;
+        MicroserviceRequestMaker.microserviceLoadBalancer = microserviceLoadBalancer;
+        MicroserviceRequestMaker.printStacktraceOnFailed = printStacktraceOnFailed;
+        MicroserviceRequestMaker.defaultReturnValueService = defaultReturnValueService;
+        MicroserviceRequestMaker.RETURN_NULL_ON_EMPTY_RESPONSE_BODY = nullOnEmptyResponseBody;
     }
-
-    private static List<MicroserviceRequestInterceptor> microserviceRequestInterceptors = null;
 
     @Autowired(required = false)
     public void setMicroserviceRequestInterceptors(List<MicroserviceRequestInterceptor> microserviceRequestInterceptors) {
@@ -85,8 +95,8 @@ public class MicroserviceRequestMaker {
      * @param params               additional params
      * @return object that we want to return. object that interface will return
      */
-    public static Object onBeforeReturnResultProcessor(Object returnObjectOriginal, Object payload, Class returnType,
-                                                       MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
+    private static Object onBeforeReturnResultProcessor(Object returnObjectOriginal, Object payload, Class returnType,
+                                                        MicroserviceRestTemplate restTemplate, Class[] returnGenericType, Map<String, Object> params) {
         if (microserviceRequestInterceptors == null) {
             return returnObjectOriginal;
         }
@@ -107,7 +117,8 @@ public class MicroserviceRequestMaker {
      * @param httpHeaders       http headers
      * @return response from server depend on interface return method or null if remote server has not response body
      */
-    public static Object makeRequestToMicroservice(Object payload, Class returnType, MicroserviceRestTemplate requestTemplate, Class[] returnGenericType, Map<String, Object> params,
+    public static Object makeRequestToMicroservice(Object payload, Class returnType, MicroserviceRestTemplate requestTemplate,
+                                                   Class[] returnGenericType, Map<String, Object> params,
                                                    HttpHeaders httpHeaders) {
         HttpMethod httpMethod = requestTemplate.getMethod();
 
@@ -202,7 +213,7 @@ public class MicroserviceRequestMaker {
             if (params != null) {
                 Object defaultValue = params.get("HAVE_DEFAULT_VALUE");
                 if (defaultValue == Boolean.TRUE) {
-                    return getDefaultValue(params);
+                    return defaultReturnValueService.getDefaultValue(params);
                 }
             }
 
@@ -211,42 +222,22 @@ public class MicroserviceRequestMaker {
             }
 
             if (e instanceof CannotResolveHostException) {
-                logger.error(e.getMessage(), e);
+                if (printStacktraceOnFailed) {
+                    logger.error(e.getMessage(), e);
+                } else {
+                    logger.error(e.getMessage());
+                }
+
             }
 
-            logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), requestTemplate.getLastURI() == null ? "NULL_URL" : requestTemplate.getLastURI().toString(), e);
+            if (printStacktraceOnFailed) {
+                logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), requestTemplate.getLastURI() == null ? "NULL_URL" : requestTemplate.getLastURI().toString(), e);
+            } else {
+                logger.error("Can not get bytes from microservice {} {}", httpMethod.toString(), requestTemplate.getLastURI() == null ? "NULL_URL" : requestTemplate.getLastURI().toString());
+            }
             throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");
         }
     }
-
-    /**
-     * Get default java 8 interface return value
-     *
-     * @param params params
-     * @return return from interface
-     */
-    private static Object getDefaultValue(Map<String, Object> params) {
-        Method method = (Method) params.get(DEFAULT_INTERFACE_PROXY_METHOD);
-        Class<?> interfaceToExtend = (Class<?>) params.get(INTERFACE_IMPLEMENTED);
-        Object[] methodParams = (Object[]) params.get(METHOD_PARAMS);
-
-        Object defaultInterfaceProxy = defaultObjectImplProxy.computeIfAbsent(interfaceToExtend.toString(),
-                x -> Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                        new Class[]{interfaceToExtend}, (Object proxy2, Method method2, Object[] arguments2) -> null));
-
-        try {
-            Method defaultJava8Method = interfaceToExtend.getMethod(method.getName(), method.getParameterTypes());
-            Field field = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
-            field.setAccessible(true);
-            MethodHandles.Lookup lookup = (MethodHandles.Lookup) field.get(null);
-            return lookup.unreflectSpecial(defaultJava8Method, defaultJava8Method.getDeclaringClass()).bindTo(defaultInterfaceProxy).invokeWithArguments(methodParams);
-        } catch (Throwable throwable) {
-            logger.error("Can not execute java 8 default interface method", throwable);
-            throw new InternalSeverErrorProcessingRequestException("Internal error processing. Retry later");
-        }
-    }
-
-    private static Map<String, Object> defaultObjectImplProxy = new ConcurrentHashMap<>();
 
 
     public List<MicroserviceRequestInterceptor> getMicroserviceRequestInterceptors() {
@@ -264,22 +255,5 @@ public class MicroserviceRequestMaker {
 
         return microserviceRequestInterceptors;
     }
-
-    public static boolean isReturnNullOnEmptyResponseBody() {
-        return RETURN_NULL_ON_EMPTY_RESPONSE_BODY;
-    }
-
-    public static void setReturnNullOnEmptyResponseBody(boolean returnNullOnEmptyResponseBody) {
-        MicroserviceRequestMaker.RETURN_NULL_ON_EMPTY_RESPONSE_BODY = returnNullOnEmptyResponseBody;
-    }
-
-    public static ObjectMapper getObjectMapper() {
-        return objectMapper;
-    }
-
-    public static MicroserviceHelper getMicroserviceHelper() {
-        return microserviceHelper;
-    }
-
 
 }

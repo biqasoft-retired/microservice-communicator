@@ -10,21 +10,18 @@ import com.biqasoft.microservice.communicator.http.HttpClientsHelpers;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroHeader;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPathVar;
-import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPayloadVar;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.biqasoft.microservice.communicator.internal.JsonObjectFromParametersService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.lang.annotation.Annotation;
@@ -44,15 +41,13 @@ import java.util.concurrent.CompletableFuture;
 public class MicroserviceInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceInterface.class);
-    private static final JsonNodeFactory factory = JsonNodeFactory.instance;
 
-    private static final ObjectMapper objectMapper;
+    private static JsonObjectFromParametersService jsonObjectFromParametersService;
 
-    static {
-        objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    @Autowired
+    public MicroserviceInterface(JsonObjectFromParametersService jsonObjectFromParametersService) {
+        MicroserviceInterface.jsonObjectFromParametersService = jsonObjectFromParametersService;
     }
-
 
     /**
      * Create microservice implementation
@@ -63,16 +58,14 @@ public class MicroserviceInterface {
     @SuppressWarnings("unchecked") // Single-interface proxy creation guarded by parameter safety.
     public static <T> T create(final Class<T> interfaceToExtend) {
         if (interfaceToExtend.isInterface()) {
-
             Annotation declaredAnnotation = interfaceToExtend.getDeclaredAnnotation(Microservice.class);
-            if (declaredAnnotation == null) {
-                throw new InvalidStateException(interfaceToExtend.toString() + " must be annotated with " + Microservice.class.toString() + " annotation");
-            }
+            Assert.notNull(declaredAnnotation, interfaceToExtend.toString() + " must be annotated with " + Microservice.class.toString() + " annotation");
 
             List<Class<?>> extendInterfaces = new ArrayList<>();
             extendInterfaces.add(interfaceToExtend); // new microservice class - will implement microservice interface
             extendInterfaces.addAll(Arrays.asList(interfaceToExtend.getInterfaces())); // implement interface that current interface class implement
 
+            // this method will be executed on every interface method call
             return (T) Enhancer.create(UserMicroserviceRequestSuperService.class, extendInterfaces.toArray(new Class[extendInterfaces.size()]),
                     (MethodInterceptor) (o, method, objects, methodProxy) -> {
 
@@ -84,6 +77,7 @@ public class MicroserviceInterface {
 
                 CachedMicroserviceCall microserviceCall = MicroserviceCachedParsedAnnotationInterface.processMicroserviceSignature(method, o);
 
+                // init some settings for processing request
                 String annotatedPath = microserviceCall.annotatedPath;
                 HttpMethod httpMethod = microserviceCall.httpMethod;
                 Class[] returnGenericType = microserviceCall.returnGenericType;
@@ -148,54 +142,7 @@ public class MicroserviceInterface {
 
                 // create(merge) json payload from many method arguments
                 if (mergePayloadToObject) {
-                    ObjectNode rootNode = factory.objectNode();
-                    payload = rootNode;
-
-                    for (Parameter parameter : parameters) {
-
-                        MicroPayloadVar param = AnnotationUtils.findAnnotation(parameter, MicroPayloadVar.class);
-                        if (param == null) {
-                            continue;
-                        }
-
-                        String jsonName;
-                        String delimiter = ".";
-
-                        if (!StringUtils.isEmpty(param.path())) {
-                            jsonName = param.path();
-                        } else {
-                            // java 8 param reflection
-                            if (!parameter.isNamePresent()) {
-                                throw new InvalidStateException("You try to use java 8 param name extract via reflection, but looks like, not compile javac with -parameters");
-                            }
-                            jsonName = parameter.getName();
-                            delimiter = "_";
-                        }
-
-                        ObjectNode latestNode = rootNode;
-                        if (jsonName.contains(delimiter)) {
-                            String[] split = jsonName.split(delimiter.equals(".") ? "\\." : "_");
-                            int i = 0;
-                            for (String s : split) {
-                                if ((i + 1) == split.length) {
-                                    break;
-                                }
-
-                                if (latestNode.path(s).isObject()) {
-                                    latestNode = (ObjectNode) latestNode.path(s);
-                                } else {
-                                    ObjectNode newNode = factory.objectNode();
-                                    latestNode.set(s, newNode);
-                                    latestNode = newNode;
-                                }
-                                i++;
-                            }
-                            jsonName = split[split.length - 1];
-                        }
-
-                        JsonNode node = objectMapper.convertValue(objects[parameters.indexOf(parameter)], JsonNode.class);
-                        latestNode.set(jsonName, node);
-                    }
+                    payload = jsonObjectFromParametersService.createJsonRequestObjectFromParameters(objects, parameters);
                 }
 
                 // only POST and PUT can have payload

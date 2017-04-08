@@ -204,5 +204,9 @@ or can not retry request to microservices predetermined number of times(on error
 Spring 4.3 requires to add custom VM option to run `-addmods java.xml.bind`,
 optionally you can use `-ea -XaddExports:java.base/jdk.internal.loader=ALL-UNNAMED  -addmods java.xml.bind`
 
+##
+
+Jackson is used to serialize/deserialize json. So, you can customize ObjectMapper bean, by injected it with @Qualifier("defaultObjectMapperConfiguration")
+
 ### License
 Copyright © 2016 [Nikita Bakaev](http://nbakaev.ru). Licensed under the Apache License.

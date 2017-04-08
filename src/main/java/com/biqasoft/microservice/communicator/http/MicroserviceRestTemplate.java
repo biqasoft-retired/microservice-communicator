@@ -49,10 +49,10 @@ public class MicroserviceRestTemplate extends RestTemplate {
     private final HttpMethod method;
     private static final Logger logger = LoggerFactory.getLogger(MicroserviceRestTemplate.class);
 
-    private final Boolean tryToReconnect;
+    private final boolean tryToReconnect;
     private int triedTimes = 0;
 
-    private boolean https;
+    private final boolean https;
 
     // number of times to reconnect
     private final int tryToReconnectTimes;
@@ -94,7 +94,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
      * @param https    use http or https
      * @throws URISyntaxException exception
      */
-    public MicroserviceRestTemplate(Boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource, HttpMethod httpMethod, boolean https) throws URISyntaxException {
+    public MicroserviceRestTemplate(boolean tryToReconnect, int tryToReconnectTimes, int sleepTimeBetweenTrying, String microserviceName, String pathToApiResource, HttpMethod httpMethod, boolean https) throws URISyntaxException {
         super(messageConverters);
         Assert.notNull(httpMethod, "'method' must not be null");
         this.setRequestFactory(httpComponentsClientHttpRequestFactory);
@@ -121,7 +121,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
         }
 
         // use load-balancer
-        return SpringContextAware.getMicroserviceHelper().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect, https);
+        return SpringContextAware.getMicroserviceLoadBalancer().getLoadBalancedURIByMicroservice(microserviceName, pathToApiResource, sleepTimeBetweenTrying, tryToReconnect, https);
     }
 
     private static List<MicroserviceRequestInterceptor> microserviceRequestInterceptors = null;
@@ -197,7 +197,7 @@ public class MicroserviceRestTemplate extends RestTemplate {
             triedTimes++;
 
             // flag to exit from loop
-            if (tryToReconnect == null || !tryToReconnect) {
+            if (!tryToReconnect) {
                 exitLoop = true;
             }
 

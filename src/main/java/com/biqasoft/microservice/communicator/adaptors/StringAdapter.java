@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
+ * Process return type {@link String}
+ *
  * Created by Nikita on 10/17/2016.
  */
 @Component
