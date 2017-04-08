@@ -257,6 +257,23 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test
+    public void testByteByteArrayResponse() throws Exception {
+        String username = "Nikita";
+        String password = "super_secret_password";
+        String country = "LAAAAA";
+        String city = "BOO";
+        byte[] response = microserviceUsersRepository.returnByteArrayEcho(username, password, country, city);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        UserAccount account = objectMapper.readValue(response, UserAccount.class);
+
+        Assert.assertEquals(account.getUsername(), username);
+        Assert.assertEquals(account.getPassword(), password);
+        Assert.assertEquals(account.getAddress().getCountry(), country);
+        Assert.assertEquals(account.getAddress().getCity(), city);
+    }
+
+    @Test
     public void testReturnPayloadFromName() throws Exception {
         String username = "Nikita";
         String password = "super_secret_password";

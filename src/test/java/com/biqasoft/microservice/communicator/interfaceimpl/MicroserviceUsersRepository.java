@@ -86,6 +86,12 @@ public interface MicroserviceUsersRepository {
                                                    @MicroPayloadVar("address.country") String country,
                                                    @MicroPayloadVar("address.city") String city);
 
+    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)
+    byte[] returnByteArrayEcho(@MicroPayloadVar("username") String username,
+                                              @MicroPayloadVar("password") String password,
+                                              @MicroPayloadVar("address.country") String country,
+                                              @MicroPayloadVar("address.city") String city);
+
     // use java 8 with javac -parameters to add parameter name and use as json node name
     // instead of annotation value with dot(.) delimiter - in parameter name - is decimeter
     @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)

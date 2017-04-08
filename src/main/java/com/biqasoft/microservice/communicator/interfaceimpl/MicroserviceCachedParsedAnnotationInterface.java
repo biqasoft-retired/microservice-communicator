@@ -7,17 +7,14 @@ package com.biqasoft.microservice.communicator.interfaceimpl;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroMapping;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.MicroPayloadVar;
 import com.biqasoft.microservice.communicator.interfaceimpl.annotation.Microservice;
-import com.strobel.reflection.Type;
-import com.strobel.reflection.TypeBindings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,6 +44,7 @@ public class MicroserviceCachedParsedAnnotationInterface {
         return computeMicroserviceSignature(method, o);
     }
 
+
     /**
      * We have not cached info about this method (REST endpoint)
      * So, calculate
@@ -58,75 +56,33 @@ public class MicroserviceCachedParsedAnnotationInterface {
         SpecialLanguageNotation.SpecialLanguage specialLanguage = SpecialLanguageNotation.isProcessSpecialLanguageNotation(method);
 
         MicroMapping microMapping = AnnotationUtils.findAnnotation(method, MicroMapping.class);
-        Class[] returnGenericType = null;
-        Class<?> microserviceReturnType = null;
-        String microserviceName = null;
-        String basePath = null;
-        boolean https = false;
+        Class[] returnGenericType;
+        Class<?> microserviceReturnType;
+        String microserviceName;
+        String basePath;
+        boolean https;
 
+        Annotation declaredAnnotation = null;
+
+        Class<?>[] allInterfaces = ClassUtils.getAllInterfaces(o);
+        for (Class c : allInterfaces) {
+            declaredAnnotation = AnnotationUtils.findAnnotation(c, Microservice.class);
+            if (declaredAnnotation != null) {
+                break;
+            }
+        }
+
+        microserviceName = (String) AnnotationUtils.getValue(declaredAnnotation, "microservice");
+        basePath = (String) AnnotationUtils.getValue(declaredAnnotation, "basePath");
+        https = (boolean) AnnotationUtils.getValue(declaredAnnotation, "https");
+        microserviceReturnType = method.getReturnType();
+
+        // get generic type...
         try {
-            Class aClass = null;
-            Annotation declaredAnnotation = null;
-
-            Class<?>[] allInterfaces = ClassUtils.getAllInterfaces(o);
-            for (Class c : allInterfaces){
-                declaredAnnotation = AnnotationUtils.findAnnotation(c, Microservice.class);
-                if (declaredAnnotation != null){
-                    aClass = c;
-                    break;
-                }
-            }
-
-            microserviceName = (String) AnnotationUtils.getValue(declaredAnnotation, "microservice");
-            basePath = (String) AnnotationUtils.getValue(declaredAnnotation, "basePath");
-            https = (boolean) AnnotationUtils.getValue(declaredAnnotation, "https");
-            microserviceReturnType = method.getReturnType();
-
-            // get generic type...
-            try {
-                Type<?> returnType = Type.of(aClass).getMethod(method.getName()).getReturnType();
-
-                if (returnType.isGenericType() && returnType.getGenericTypeParameters().size() > 0) {
-                    int genericsParamNumber = returnType.getGenericTypeParameters().size();
-
-                    returnGenericType = new Class[genericsParamNumber];
-
-                    Method allGenericsMethod = returnType.getClass().getDeclaredMethod("getTypeBindings");
-                    allGenericsMethod.setAccessible(true);
-                    TypeBindings typeBindings = (TypeBindings) allGenericsMethod.invoke(returnType);
-
-                    for (int i = 0; i < genericsParamNumber; i++) {
-                        Type boundType = typeBindings.getBoundType(i);
-
-                        if (boundType.isGenericType()) {
-                            // looks like this is generic in generic like this expression
-                            // java.util.concurrent.CompletableFuture<java.util.List<com.biqasoft.microservice.communicator.interfaceimpl.demo.UserAccount>>
-                            if (boundType.getErasedClass().equals(List.class)) {
-                                returnGenericType[i] = boundType.getErasedClass();
-                                ///////////////////
-                                Method allGenericsMethod2 = boundType.getClass().getDeclaredMethod("getTypeBindings");
-                                allGenericsMethod2.setAccessible(true);
-                                TypeBindings typeBindings2 = (TypeBindings) allGenericsMethod2.invoke(boundType);
-
-                                returnGenericType = Arrays.copyOf(returnGenericType, returnGenericType.length + 1);
-                                returnGenericType[i + 1] = Class.forName(typeBindings2.getBoundType(0).getFullName());
-                            }
-                        } else {
-                            if (boundType.getTypeName().equals("byte[]")){
-                                returnGenericType[i] = Class.forName("[B");
-                            }else{
-                                returnGenericType[i] = Class.forName(boundType.getTypeName());
-                            }
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                returnGenericType = null;
-                logger.error("can not get generic info ", e);
-            }
-
+            returnGenericType = processGenericReturnType(method);
         } catch (Exception e) {
-            e.printStackTrace();
+            returnGenericType = null;
+            logger.error("can not get generic info ", e);
         }
 
         if (specialLanguage == null) {
@@ -138,10 +94,10 @@ public class MicroserviceCachedParsedAnnotationInterface {
             cachedMicroserviceCall.convertResponseToMap = microMapping.convertResponseToMap();
 
             // we have [][]
-            if (method.getParameterAnnotations().length > 0){
-                for (Annotation[] annotations : method.getParameterAnnotations()){
-                    for (Annotation annotation : annotations){
-                        if (annotation.annotationType().equals(MicroPayloadVar.class)){
+            if (method.getParameterAnnotations().length > 0) {
+                for (Annotation[] annotations : method.getParameterAnnotations()) {
+                    for (Annotation annotation : annotations) {
+                        if (annotation.annotationType().equals(MicroPayloadVar.class)) {
                             cachedMicroserviceCall.mergePayloadToObject = true;
                             break;
                         }
@@ -153,7 +109,7 @@ public class MicroserviceCachedParsedAnnotationInterface {
             SpecialLanguageNotation.processSpecialLanguageNotation(cachedMicroserviceCall, method, o, specialLanguage);
         }
 
-        cachedMicroserviceCall.https = https ;
+        cachedMicroserviceCall.https = https;
         cachedMicroserviceCall.microserviceName = microserviceName;
         cachedMicroserviceCall.microserviceReturnType = microserviceReturnType;
         cachedMicroserviceCall.returnGenericType = returnGenericType;
@@ -161,6 +117,45 @@ public class MicroserviceCachedParsedAnnotationInterface {
 
         cachedMicroserviceCallMap.put(method.hashCode(), cachedMicroserviceCall);
         return cachedMicroserviceCall;
+    }
+
+    /**
+     *
+     * @param method method from which get generics
+     *
+     * @return all method generics in one array;
+     * normally if we want to support generic in generic, this method must be recursive,
+     * but this method is used for return type of interface and this limitation is by design
+     */
+    private static Class[] processGenericReturnType(Method method) {
+        Class[] returnGenericType = null;
+
+        ResolvableType resolvableType = ResolvableType.forMethodReturnType(method);
+        ResolvableType[] generics = resolvableType.getGenerics();
+
+        int num = 0;
+        if (generics.length > 0) {
+            returnGenericType = new Class[generics.length];
+            for (ResolvableType generic : generics) {
+                num++;
+                ResolvableType[] generics1 = generic.getGenerics();
+                if (generics1.length > 0) {
+                    num++;
+                }
+            }
+        }
+
+        if (generics.length > 0) {
+            returnGenericType = new Class[num];
+            for (int i = 0; i < generics.length; i++) {
+                returnGenericType[i] = generics[i].getRawClass();
+                ResolvableType[] generics1 = generics[i].getGenerics();
+                if (generics1.length > 0) {
+                    returnGenericType[i + 1] = generics1[0].getRawClass();
+                }
+            }
+        }
+        return returnGenericType;
     }
 
 }
