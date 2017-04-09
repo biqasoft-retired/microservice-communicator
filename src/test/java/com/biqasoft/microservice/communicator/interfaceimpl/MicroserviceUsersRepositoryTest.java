@@ -288,6 +288,14 @@ public class MicroserviceUsersRepositoryTest extends AbstractTestNGSpringContext
     }
 
     @Test
+    public void testReturnJsonExpression() throws Exception {
+        String city = "BOO";
+        String account = microserviceUsersRepository.returnJsonExpression(null, null, null, city);
+
+        Assert.assertEquals(account, city);
+    }
+
+    @Test
     public void testReturnInvalidServerExceptionEntity() throws Exception {
         try {
             ResponseEntity<UserAccount> userAccountResponseEntity = microserviceUsersRepository.returnInvalidServerExceptionEntity();

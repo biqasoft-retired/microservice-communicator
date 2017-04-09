@@ -56,6 +56,13 @@ public @interface MicroMapping {
 
     boolean convertResponseToMap() default false;
 
+    /**
+     * json path of response object
+     * @return json path of response object to return in interface
+     */
+    String returnExpression() default "";
+
+
 //    MediaType contentType() default MediaType.APPLICATION_JSON;
 //    String[] produces() default {};
 //    String[] consumes() default {};

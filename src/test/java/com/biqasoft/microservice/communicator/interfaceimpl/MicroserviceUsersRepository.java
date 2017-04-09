@@ -100,6 +100,14 @@ public interface MicroserviceUsersRepository {
                                       @MicroPayloadVar String address_country,
                                       @MicroPayloadVar String address_city);
 
+    // from server we will get json like that {username: ... , address :{city: "SomeString" } }
+    // so, if we are interesting only in city field, we can immediately return it, instead of all server return data
+    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST, returnExpression = "address.city")
+    String returnJsonExpression(@MicroPayloadVar String username,
+                                      @MicroPayloadVar String password,
+                                      @MicroPayloadVar String address_country,
+                                      @MicroPayloadVar String address_city);
+
     @MicroMapping("/domain/users/mock/one")
     CompletableFuture<UserAccount> returnCompletableFutureSingleObject();
 

@@ -92,6 +92,7 @@ public class MicroserviceCachedParsedAnnotationInterface {
             cachedMicroserviceCall.tryToReconnectTimes = microMapping.tryToReconnectTimes();
             cachedMicroserviceCall.sleepTimeBetweenTrying = microMapping.sleepTimeBetweenTrying();
             cachedMicroserviceCall.convertResponseToMap = microMapping.convertResponseToMap();
+            cachedMicroserviceCall.returnExpression = microMapping.returnExpression();
 
             // we have [][]
             if (method.getParameterAnnotations().length > 0) {

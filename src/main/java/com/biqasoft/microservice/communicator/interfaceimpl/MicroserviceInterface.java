@@ -88,6 +88,7 @@ public class MicroserviceInterface {
                 boolean convertJsonToMap = microserviceCall.convertResponseToMap;
                 boolean mergePayloadToObject = microserviceCall.mergePayloadToObject;
                 boolean https = microserviceCall.https;
+                String returnExpression = microserviceCall.returnExpression;
 
                 // java 8 default interface method
                 boolean haveDefaultValue = method.isDefault();
@@ -180,6 +181,14 @@ public class MicroserviceInterface {
                     param.put(MicroserviceRequestMaker.METHOD_PARAMS, objects);
                 }
 
+                if (!StringUtils.isEmpty(returnExpression)) {
+                    if (param == null) {
+                        param = new HashMap<>();
+                    }
+
+                    param.put("RETURN_EXPRESSION", returnExpression);
+                }
+
                 MicroserviceRequestMaker.beforeProcessRequest(restTemplate, httpHeaders);
 
                 if (microserviceReturnType.equals(CompletableFuture.class)) {
@@ -207,6 +216,7 @@ public class MicroserviceInterface {
         String annotatedPath = null;
         String microserviceName = null;
         String basePath = null;
+        String returnExpression = null;
 
         boolean convertResponseToMap = false;
         boolean mergePayloadToObject = false;

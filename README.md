@@ -30,8 +30,8 @@ Auto generate HTTP REST classes for interfaces.
 @Microservice("test-microservice") // test-microservice is id in service discovery
 public interface MicroserviceUsersRepository {
 
+    // HTTP GET - default, you can leave it
     @MicroMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
-// HTTP GET - default, you can leave it
     UserAccount returnSingleObject();
 
     @MicroMapping("/domain/users/mock/null")
@@ -95,11 +95,25 @@ public interface MicroserviceUsersRepository {
                                                    @MicroPayloadVar("password") String password,
                                                    @MicroPayloadVar("address.country") String country,
                                                    @MicroPayloadVar("address.city") String city);
-    
+
+    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)
+    byte[] returnByteArrayEcho(@MicroPayloadVar("username") String username,
+                                              @MicroPayloadVar("password") String password,
+                                              @MicroPayloadVar("address.country") String country,
+                                              @MicroPayloadVar("address.city") String city);
+
     // use java 8 with javac -parameters to add parameter name and use as json node name
     // instead of annotation value with dot(.) delimiter - in parameter name - is decimeter
     @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)
     UserAccount returnPayloadFromName(@MicroPayloadVar String username,
+                                      @MicroPayloadVar String password,
+                                      @MicroPayloadVar String address_country,
+                                      @MicroPayloadVar String address_city);
+
+    // from server we will get json like that {username: ... , address :{city: "SomeString" } }
+    // so, if we are interesting only in city field, we can immediately return it, instead of all server return data 
+    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST, returnExpression = "address.city")
+    String returnJsonExpression(@MicroPayloadVar String username,
                                       @MicroPayloadVar String password,
                                       @MicroPayloadVar String address_country,
                                       @MicroPayloadVar String address_city);
@@ -119,10 +133,19 @@ public interface MicroserviceUsersRepository {
     @MicroMapping("/domain/users/mock/null")
     Optional<UserAccount> returnSingleOptionalEmptyObject();
 
+    @MicroMapping("/domain/users/mock/authorization_header")
+    JsonNode sendAuthHeaderInEcho(@MicroHeader("Authorization") String authHeader);
+
     // default will be executed on error main request
     @MicroMapping("/domain/users/mock/generate_500_http_error")
     default UserAccount returnDefaultValue() {
         return new UserAccount("I'm default Java 8 interface");
+    }
+
+    // default will be executed on error main request
+    @MicroMapping("/domain/users/mock/generate_500_http_error")
+    default UserAccount returnDefaultValue(String name) {
+        return new UserAccount(name);
     }
 }
 ```
