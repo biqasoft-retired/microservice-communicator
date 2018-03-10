@@ -34,7 +34,8 @@ public class ResponseErrorHandler extends DefaultResponseErrorHandler {
         }
     }
 
-    private byte[] getResponseBody(ClientHttpResponse response) {
+    @Override
+    protected byte[] getResponseBody(ClientHttpResponse response) {
         try {
             InputStream responseBody = response.getBody();
             if (responseBody != null) {
@@ -47,11 +48,11 @@ public class ResponseErrorHandler extends DefaultResponseErrorHandler {
         return new byte[0];
     }
 
-    private Charset getCharset(ClientHttpResponse response) {
-        HttpHeaders headers = response.getHeaders();
-        MediaType contentType = headers.getContentType();
-        return contentType != null ? contentType.getCharset() : null;
-    }
+//    private Charset getCharset2(ClientHttpResponse response) {
+//        HttpHeaders headers = response.getHeaders();
+//        MediaType contentType = headers.getContentType();
+//        return contentType != null ? contentType.getCharset() : null;
+//    }
 
 
 }
