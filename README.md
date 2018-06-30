@@ -31,52 +31,52 @@ Auto generate HTTP REST classes for interfaces.
 public interface MicroserviceUsersRepository {
 
     // HTTP GET - default, you can leave it
-    @MicroMapping(path = "/domain/users/mock/one", method = HttpMethod.GET)
+    @MicroMapping(path = "/domainDto/users/mock/one", method = HttpMethod.GET)
     UserAccount returnSingleObject();
 
-    @MicroMapping("/domain/users/mock/null")
+    @MicroMapping("/domainDto/users/mock/null")
     UserAccount returnNullBodyResponse();
 
-    @MicroMapping("/domain/users/mock/null")
+    @MicroMapping("/domainDto/users/mock/null")
     ResponseEntity<UserAccount> returnNonNullBodyResponse();
 
-    @MicroMapping("/domain/users/mock")
+    @MicroMapping("/domainDto/users/mock")
     List<UserAccount> returnGenericList();
 
-    @MicroMapping("/domain/users/mock/one")
+    @MicroMapping("/domainDto/users/mock/one")
     ResponseEntity<UserAccount> returnGenericResponseEntity();
 
     // russian special language
-    // equals to findAllUsersInDomainMock() - GET /domain/users/mock
+    // equals to findAllUsersInDomainMock() - GET /domainDto/users/mock
     @MicroMapping
     List<UserAccount> построитьПолучитьМестоDomainГдеUsersГдеMock();
 
-    // in tests url will be /domain/users/mock/one
-    @MicroMapping("/domain/{s1}/{s2}/one")
+    // in tests url will be /domainDto/users/mock/one
+    @MicroMapping("/domainDto/{s1}/{s2}/one")
     UserAccount returnSingleObjectWithPathParam(@MicroPathVar("s1") String s,
                                                 @MicroPathVar("s2") String s2);
 
-    @MicroMapping("/domain/users/mock/one")
+    @MicroMapping("/domainDto/users/mock/one")
     JsonNode returnJson();
 
-    @MicroMapping(path = "/domain/users/mock/one", convertResponseToMap = true)
+    @MicroMapping(path = "/domainDto/users/mock/one", convertResponseToMap = true)
     Map<String, Object> returnResponseAsJsonMap();
 
-    @MicroMapping("/domain/users/mock/send_invalid_request")
+    @MicroMapping("/domainDto/users/mock/send_invalid_request")
     ResponseEntity<UserAccount> returnInvalidResponse();
 
-    @MicroMapping("/domain/users/mock/send_invalid_request")
+    @MicroMapping("/domainDto/users/mock/send_invalid_request")
     UserAccount returnInvalidResponseException();
 
     // this endpoint simulate server error
     // will be 3 attempts (by default) to try again with interval (default 1100ms)
-    @MicroMapping("/domain/users/mock/generate_500_http_error")
+    @MicroMapping("/domainDto/users/mock/generate_500_http_error")
     UserAccount returnInvalidServerException();
 
-    @MicroMapping("/domain/users/mock/generate_500_http_error")
+    @MicroMapping("/domainDto/users/mock/generate_500_http_error")
     ResponseEntity<UserAccount> returnInvalidServerExceptionEntity();
 
-    @MicroMapping(path = "/domain/users/mock/authenticate", method = HttpMethod.POST)
+    @MicroMapping(path = "/domainDto/users/mock/authenticate", method = HttpMethod.POST)
     UserAccount returnAuthenticatedUser(@MicroPayloadVar("username") String username,
                                         @MicroPayloadVar("password") String password);
 
@@ -90,13 +90,13 @@ public interface MicroserviceUsersRepository {
     //                }
     // }
     // %username% etc... will be replaced by java function param
-    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)
+    @MicroMapping(path = "/domainDto/users/mock/echo", method = HttpMethod.POST)
     UserAccount returnAuthenticatedUserComplexEcho(@MicroPayloadVar("username") String username,
                                                    @MicroPayloadVar("password") String password,
                                                    @MicroPayloadVar("address.country") String country,
                                                    @MicroPayloadVar("address.city") String city);
 
-    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)
+    @MicroMapping(path = "/domainDto/users/mock/echo", method = HttpMethod.POST)
     byte[] returnByteArrayEcho(@MicroPayloadVar("username") String username,
                                               @MicroPayloadVar("password") String password,
                                               @MicroPayloadVar("address.country") String country,
@@ -104,7 +104,7 @@ public interface MicroserviceUsersRepository {
 
     // use java 8 with javac -parameters to add parameter name and use as json node name
     // instead of annotation value with dot(.) delimiter - in parameter name - is decimeter
-    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST)
+    @MicroMapping(path = "/domainDto/users/mock/echo", method = HttpMethod.POST)
     UserAccount returnPayloadFromName(@MicroPayloadVar String username,
                                       @MicroPayloadVar String password,
                                       @MicroPayloadVar String address_country,
@@ -112,38 +112,38 @@ public interface MicroserviceUsersRepository {
 
     // from server we will get json like that {username: ... , address :{city: "SomeString" } }
     // so, if we are interesting only in city field, we can immediately return it, instead of all server return data 
-    @MicroMapping(path = "/domain/users/mock/echo", method = HttpMethod.POST, returnExpression = "address.city")
+    @MicroMapping(path = "/domainDto/users/mock/echo", method = HttpMethod.POST, returnExpression = "address.city")
     String returnJsonExpression(@MicroPayloadVar String username,
                                       @MicroPayloadVar String password,
                                       @MicroPayloadVar String address_country,
                                       @MicroPayloadVar String address_city);
 
-    @MicroMapping("/domain/users/mock/one")
+    @MicroMapping("/domainDto/users/mock/one")
     CompletableFuture<UserAccount> returnCompletableFutureSingleObject();
 
-    @MicroMapping("/domain/users/mock")
+    @MicroMapping("/domainDto/users/mock")
     CompletableFuture<List<UserAccount>> returnListCompletableFutureObjects();
 
-    @MicroMapping("/domain/users/mock/one")
+    @MicroMapping("/domainDto/users/mock/one")
     Optional<UserAccount> returnSingleOptionalObject();
 
-    @MicroMapping("/domain/users/mock")
+    @MicroMapping("/domainDto/users/mock")
     Optional<List<UserAccount>> returnListOptionalObject();
 
-    @MicroMapping("/domain/users/mock/null")
+    @MicroMapping("/domainDto/users/mock/null")
     Optional<UserAccount> returnSingleOptionalEmptyObject();
 
-    @MicroMapping("/domain/users/mock/authorization_header")
+    @MicroMapping("/domainDto/users/mock/authorization_header")
     JsonNode sendAuthHeaderInEcho(@MicroHeader("Authorization") String authHeader);
 
     // default will be executed on error main request
-    @MicroMapping("/domain/users/mock/generate_500_http_error")
+    @MicroMapping("/domainDto/users/mock/generate_500_http_error")
     default UserAccount returnDefaultValue() {
         return new UserAccount("I'm default Java 8 interface");
     }
 
     // default will be executed on error main request
-    @MicroMapping("/domain/users/mock/generate_500_http_error")
+    @MicroMapping("/domainDto/users/mock/generate_500_http_error")
     default UserAccount returnDefaultValue(String name) {
         return new UserAccount(name);
     }
