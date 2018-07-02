@@ -2,12 +2,12 @@ package com.biqasoft.microservice.communicator.adaptors;
 
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceRequestInterceptor;
+import com.biqasoft.microservice.communicator.internal.DefaultObjectMapperConfiguration;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -27,8 +27,8 @@ public class CompletableFutureAdapter implements MicroserviceRequestInterceptor 
     private static final Logger logger = LoggerFactory.getLogger(CompletableFutureAdapter.class);
 
     @Autowired
-    public CompletableFutureAdapter(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public CompletableFutureAdapter(DefaultObjectMapperConfiguration.DefaultObjectMapperConfigurationData objectMapper) {
+        this.objectMapper = objectMapper.getObjectMapper();
     }
 
     @Override

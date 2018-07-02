@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -25,8 +24,8 @@ public class JsonObjectFromParametersService {
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public JsonObjectFromParametersService(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public JsonObjectFromParametersService(DefaultObjectMapperConfiguration.DefaultObjectMapperConfigurationData objectMapper) {
+        this.objectMapper = objectMapper.getObjectMapper();
     }
 
     /**

@@ -5,12 +5,12 @@ import com.biqasoft.microservice.communicator.exceptions.InternalSeverErrorProce
 import com.biqasoft.microservice.communicator.exceptions.InvalidRequestException;
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceRequestInterceptor;
+import com.biqasoft.microservice.communicator.internal.DefaultObjectMapperConfiguration.DefaultObjectMapperConfigurationData;
 import com.biqasoft.microservice.communicator.internal.DefaultReturnValueService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.ClientHttpResponse;
@@ -57,11 +57,11 @@ public class MicroserviceRequestMaker {
     }
 
     @Autowired
-    public MicroserviceRequestMaker(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper,
+    public MicroserviceRequestMaker(DefaultObjectMapperConfigurationData objectMapper,
                                     @Value("${biqa.microservice.communicator.error.printstacktrace:false}") boolean printStacktraceOnFailed,
                                     @Value("${biqa.microservice.communicator.response.empty.null:true}") boolean nullOnEmptyResponseBody,
                                     DefaultReturnValueService defaultReturnValueService) {
-        MicroserviceRequestMaker.objectMapper = objectMapper;
+        MicroserviceRequestMaker.objectMapper = objectMapper.getObjectMapper();
         MicroserviceRequestMaker.printStacktraceOnFailed = printStacktraceOnFailed;
         MicroserviceRequestMaker.defaultReturnValueService = defaultReturnValueService;
         MicroserviceRequestMaker.RETURN_NULL_ON_EMPTY_RESPONSE_BODY = nullOnEmptyResponseBody;

@@ -2,10 +2,10 @@ package com.biqasoft.microservice.communicator.adaptors;
 
 import com.biqasoft.microservice.communicator.http.MicroserviceRestTemplate;
 import com.biqasoft.microservice.communicator.interfaceimpl.MicroserviceRequestInterceptor;
+import com.biqasoft.microservice.communicator.internal.DefaultObjectMapperConfiguration;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -21,8 +21,8 @@ public class JsonAdapter implements MicroserviceRequestInterceptor {
 
     private final ObjectMapper objectMapper;
 
-    public JsonAdapter(@Qualifier("defaultObjectMapperConfiguration") ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public JsonAdapter(DefaultObjectMapperConfiguration.DefaultObjectMapperConfigurationData objectMapper) {
+        this.objectMapper = objectMapper.getObjectMapper();
     }
 
     @Override
